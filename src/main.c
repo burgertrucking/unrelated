@@ -31,6 +31,11 @@ int main(int argc, char** argv)
 	{
 		#ifdef ENABLE_HOT_RELOADING
 			gameDll.UpdateDrawFrame(&state);
+			if (state.doHotReload)
+			{
+				HandleHotReload();
+				state.doHotReload = SDL_FALSE;
+			}
 		#else
 			UpdateDrawFrame(&state);
 		#endif

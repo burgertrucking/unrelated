@@ -9,6 +9,7 @@ void InitGame(GameState* state)
 {
     state->count = 0;
     state->shouldQuit = SDL_FALSE;
+    state->doHotReload = SDL_FALSE;
 }
 
 #ifdef _WIN32
@@ -33,6 +34,11 @@ void UpdateDrawFrame(GameState* state)
                 {
                     case SDLK_ESCAPE:
                         state->shouldQuit = SDL_TRUE;
+                        break;
+
+                    case SDLK_F5:
+                        state->doHotReload = SDL_TRUE;
+                        break;
 
                     default:
                         break;

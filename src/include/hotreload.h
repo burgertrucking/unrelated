@@ -8,7 +8,7 @@
 
 #ifdef __unix
     #include <dlfcn.h>
-    static const char* dllPath = "libgame.so";
+    static const char* dllPath = "game.so";
     static void* LoadLib(const char* f) { return dlopen(f, RTLD_LAZY); }
     static void* LoadLibProc(void* h, const char* n) { return dlsym(h, n); }
     static int FreeLib(void* h) { return dlclose(h); }

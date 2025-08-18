@@ -14,6 +14,7 @@ typedef struct GameState
     int count; /* temp */
     SDL_Event event;
     SDL_bool shouldQuit;
+    SDL_bool doHotReload; /* if ENABLE_HOT_RELOADING is not defined, this variable does nothing */
 } GameState;
 
 #ifdef _WIN32

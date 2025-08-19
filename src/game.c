@@ -1,6 +1,7 @@
 #include "game.h"
 #include "SDL/SDL.h"
-#include <stdio.h>
+#include <stdio.h> /* TEMP for printfs */
+#include "includeall.c"
 
 #ifdef _WIN32
     __declspec(dllexport)
@@ -8,8 +9,7 @@
 void InitGame(GameState* state)
 {
     state->count = 0;
-    state->shouldQuit = SDL_FALSE;
-    state->doHotReload = SDL_FALSE;
+    state->statusFlags = 0; /* clear all flags */
 }
 
 #ifdef _WIN32
@@ -26,18 +26,18 @@ void UpdateDrawFrame(GameState* state)
         switch (state->event.type)
         {
             case SDL_QUIT:
-                state->shouldQuit = SDL_TRUE;
+                SetFlag(&state->statusFlags, STATUS_QUIT);
                 break;
 
             case SDL_KEYDOWN:
                 switch (state->event.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:
-                        state->shouldQuit = SDL_TRUE;
+                        SetFlag(&state->statusFlags, STATUS_QUIT);
                         break;
 
                     case SDLK_F5:
-                        state->doHotReload = SDL_TRUE;
+                        SetFlag(&state->statusFlags, STATUS_HOT_RELOAD);
                         break;
 
                     default:

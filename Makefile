@@ -25,12 +25,10 @@ build/obj/main_shared.o: src/main.c build/obj
 build/obj/game_shared.o: src/game.c build/bin
 	$(CC) $(CFLAGS_SHARED) -DENABLE_HOT_RELOADING $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) -o build/obj/game.o -c src/game.c
 
-debugstatic: build/obj/main.o build/obj/game.o build/bin
-	$(CC) $(LDFLAGS) -L$(LINK_PATH) $(LDLIBS) -o build/bin/$(EXE_NAME) build/obj/main.o build/obj/game.o
+debugstatic: build/obj/main.o build/bin
+	$(CC) $(LDFLAGS) -L$(LINK_PATH) $(LDLIBS) -o build/bin/$(EXE_NAME) build/obj/main.o
 build/obj/main.o: src/main.c build/obj
 	$(CC) $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) -o build/obj/main.o -c src/main.c
-build/obj/game.o: src/game.c build/obj
-	$(CC) $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) -o build/obj/game.o -c src/game.c
 
 build/obj: build
 	mkdir build/obj

@@ -1,17 +1,24 @@
 .POSIX:
 
 CC = cc
+
 PREFIX = /usr/local
 LIB_INCLUDE_PATH = $(PREFIX)/include
 LINK_PATH = $(PREFIX)/lib
 INCLUDE_PATH = src/include
+
+BUILD_DIR = build
+MKDIR = mkdir -p
+RM = rm -r
+
 CFLAGS = -Wall --std=c89 -g
 CFLAGS_SHARED = -fPIC
 LDFLAGS =
 LDFLAGS_SHARED = -shared
-RPATH = -Wl,-rpath,'$$ORIGIN'
 LDLIBS = -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf
-EXE_NAME = game
+RPATH = -Wl,-rpath,'$$ORIGIN'
+
+EXE_NAME = unrelated
 DLL_SUFFIX = so
 
 all: debugshared
@@ -25,17 +32,11 @@ build/obj/main_shared.o: src/main.c build/obj
 build/obj/game_shared.o: src/game.c build/bin
 	$(CC) $(CFLAGS_SHARED) -DENABLE_HOT_RELOADING $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) -o build/obj/game.o -c src/game.c
 
-debugstatic: build/obj/main.o build/bin
-	$(CC) $(LDFLAGS) -L$(LINK_PATH) $(LDLIBS) -o build/bin/$(EXE_NAME) build/obj/main.o
-build/obj/main.o: src/main.c build/obj
-	$(CC) $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) -o build/obj/main.o -c src/main.c
+debugstatic: builddir src/main.c
+	$(CC) $(CFLAGS) -I$(LIB_INCLUDE_PATH) -I$(INCLUDE_PATH) $(LDFLAGS) -L$(LINK_PATH) $(LDLIBS) src/main.c -o build/$(EXE_NAME)
 
-build/obj: build
-	mkdir build/obj
-build/bin: build
-	mkdir build/bin
-build:
-	mkdir build
+builddir:
+	$(MKDIR) $(BUILD_DIR)
 
 clean:
-	rm -r build
+	$(RM) $(BUILD_DIR)

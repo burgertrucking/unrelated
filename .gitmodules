@@ -1,0 +1,3 @@
+[submodule "res/edit"]
+	path = res/edit
+	url = git@github.com:burgertrucking/res-edit.git

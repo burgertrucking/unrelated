@@ -1,10 +1,12 @@
 #ifndef ALL_C
 #define ALL_C
 
-#define HIMPL /* symbol declaring implementation */
-
-#include "statusflags.c"
-
-#undef HIMPL
+#include "statusflag.h"
+#define PLAYER_C
+#include "player.c"
+#define INPUT_C
+#include "input.c"
+#define BITFLAG_C
+#include "bitflag.c"
 
 #endif /* ALL_C */

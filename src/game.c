@@ -3,30 +3,36 @@
 #define GAME_H
 
 #include "SDL.h"
-#include "statusflags.c"
+#include "input.c"
+#include "player.c"
 
 /* anonymous enum for constants */
 enum
 {
+    RES_WIDTH = 320,
+    RES_HEIGHT = 240,
+    SCREEN_BPP = 0, /* native bpp */
     FPS = 30,
 };
 
 typedef struct GameState
 {
-    int count; /* temp */
+    Player player;
+    SDL_Surface* screen;
     SDL_Event event;
+    Uint8 vPad;
     Uint8 statusFlags;
 } GameState;
 
 #ifdef _WIN32
     __declspec(dllexport)
 #endif
-void InitGame(GameState* state);
+int InitGame(GameState* state);
 
 #ifdef _WIN32
     __declspec(dllexport)
 #endif
-void UpdateDrawFrame(GameState* state);
+int UpdateDrawFrame(GameState* state);
 
 #endif /* GAME_H */
 
@@ -34,53 +40,138 @@ void UpdateDrawFrame(GameState* state);
 #ifdef GAME_STANDALONE /* should be defined when building game.c as a dll */
 
 #include "SDL.h"
-#include <stdio.h> /* TEMP for printfs */
 #include "all.c"
+
+static int UpdateGame(GameState* state);
+static int DrawGame(GameState* state);
+static void HandleEvents(GameState* state);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
 #endif
-void InitGame(GameState* state)
+int InitGame(GameState* state)
 {
-    state->count = 0;
+    int err = 0;
+
+	state->screen = SDL_SetVideoMode(RES_WIDTH, RES_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
+	if (!state->screen) return 1; /* STUB */
+	SDL_WM_SetCaption("UNRELATED", NULL);
+
     state->statusFlags = 0; /* clear all flags */
+
+    err = InitPlayer(&state->player);
+
+    return err;
 }
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
 #endif
-void UpdateDrawFrame(GameState* state)
+int UpdateDrawFrame(GameState* state)
 {
-    ++state->count;
-    printf("counter status: %i\n", state->count);
-    printf("tick status: %i\n", SDL_GetTicks());
+    int err = 0;
 
+    /* Update */
+    err = UpdateGame(state);
+
+    /* Draw */
+    err = DrawGame(state);
+
+    SDL_Delay(1000 / FPS);
+
+    return err;
+}
+
+static int UpdateGame(GameState* state)
+{
+    int err = 0;
+
+    HandleEvents(state);
+
+    UpdatePlayer(&state->player, state->vPad);
+
+    return err;
+}
+
+static int DrawGame(GameState* state)
+{
+    int err = 0;
+
+    /* draw a green background over the screen */
+    SDL_FillRect(state->screen, &state->screen->clip_rect, SDL_MapRGB(state->screen->format, 0, 180, 60));
+    DrawPlayer(&state->player, state->screen);
+
+    SDL_Flip(state->screen);
+    return err;
+}
+
+static void HandleEvents(GameState* state)
+{
     while (SDL_PollEvent(&state->event))
     {
         switch (state->event.type)
         {
             case SDL_QUIT:
                 SetFlag(&state->statusFlags, STATUS_QUIT);
-                break;
+            break;
 
             case SDL_KEYDOWN:
                 switch (state->event.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:
                         SetFlag(&state->statusFlags, STATUS_QUIT);
-                        break;
+                    break;
 
                     case SDLK_F5:
                         SetFlag(&state->statusFlags, STATUS_HOT_RELOAD);
-                        break;
+                    break;
+
+                    case SDLK_DOWN:
+                        SetFlag(&state->vPad, VKEY_DOWN);
+                    break;
+
+                    case SDLK_UP:
+                        SetFlag(&state->vPad, VKEY_UP);
+                    break;
+
+                    case SDLK_LEFT:
+                        SetFlag(&state->vPad, VKEY_LEFT);
+                    break;
+
+                    case SDLK_RIGHT:
+                        SetFlag(&state->vPad, VKEY_RIGHT);
+                    break;
 
                     default:
-                        break;
+                    break;
                 }
-                break;
+            break;
+
+            case SDL_KEYUP:
+                switch (state->event.key.keysym.sym)
+                {
+                    case SDLK_DOWN:
+                        ClearFlag(&state->vPad, VKEY_DOWN);
+                    break;
+
+                    case SDLK_UP:
+                        ClearFlag(&state->vPad, VKEY_UP);
+                    break;
+
+                    case SDLK_LEFT:
+                        ClearFlag(&state->vPad, VKEY_LEFT);
+                    break;
+
+                    case SDLK_RIGHT:
+                        ClearFlag(&state->vPad, VKEY_RIGHT);
+                    break;
+
+                    default:
+                    break;
+                }
+            break;
         }
     }
-
-    SDL_Delay(1000 / FPS);
 }
+
 #endif /* GAME_STANDALONE */

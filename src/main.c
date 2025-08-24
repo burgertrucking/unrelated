@@ -1,10 +1,10 @@
+#define HIMPL /* symbol to load header file implementations as well as declarations */
 #include "SDL/SDL.h"
 #include "game.h"
 #include "includeall.c"
 
-/* NOTE: hot reloading not yet implemented, need to modify makefile to support it */
 #ifdef ENABLE_HOT_RELOADING
-	#include "hotreload.h"
+	#include "hotreload.c"
 #else
 	#include "game.c"
 #endif

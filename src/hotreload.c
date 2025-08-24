@@ -1,16 +1,14 @@
-/* Header section */
-#ifndef HOTRELOAD_C
-#define HOTRELOAD_C
+/* header */
+#ifndef HOTRELOAD_H
+#define HOTRELOAD_H
 
-#ifdef HIMPL
+#ifdef HOTRELOAD_IMPL
 #define HDEF static
 #else
 #define HDEF extern
-#endif /* HIMPL */
+#endif /* HOTRELOAD_IMPL */
 
-#include "SDL/SDL.h"
-#include "game.h"
-#include <stdio.h>
+#include "game.c"
 
 #ifdef __unix
     #include <dlfcn.h>
@@ -46,10 +44,14 @@ HDEF struct GameDll
 HDEF int LoadGameDll(void);
 HDEF int HandleHotReload(void);
 
-#endif /* HOTRELOAD_C */
+#endif /* HOTRELOAD_H */
 
-/* Implementation section */
-#ifdef HIMPL
+/* implementation */
+/* uses a different symbol than the rest of the header files, since including hotreload should be unique to main */
+#ifdef HOTRELOAD_IMPL
+
+#include "SDL.h"
+#include <stdio.h>
 
 #ifdef __unix
     #include <dlfcn.h>
@@ -171,4 +173,4 @@ HDEF int HandleHotReload(void)
     return 0;
 }
 
-#endif /* HIMPL */
+#endif /* HOTRELOAD_IMPL */

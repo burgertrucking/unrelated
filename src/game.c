@@ -1,9 +1,43 @@
-#include "game.h"
-#include "SDL/SDL.h"
-#include <stdio.h> /* TEMP for printfs */
-#include "includeall.c"
+/* header */
+#ifndef GAME_H
+#define GAME_H
+
+#include "SDL.h"
+#include "statusflags.c"
+
+/* anonymous enum for constants */
+enum
+{
+    FPS = 30,
+};
+
+typedef struct GameState
+{
+    int count; /* temp */
+    SDL_Event event;
+    Uint8 statusFlags;
+} GameState;
 
 #ifdef _WIN32
+    __declspec(dllexport)
+#endif
+void InitGame(GameState* state);
+
+#ifdef _WIN32
+    __declspec(dllexport)
+#endif
+void UpdateDrawFrame(GameState* state);
+
+#endif /* GAME_H */
+
+/* implementation */
+#ifdef GAME_STANDALONE /* should be defined when building game.c as a dll */
+
+#include "SDL.h"
+#include <stdio.h> /* TEMP for printfs */
+#include "all.c"
+
+#if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
 #endif
 void InitGame(GameState* state)
@@ -12,7 +46,7 @@ void InitGame(GameState* state)
     state->statusFlags = 0; /* clear all flags */
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
 #endif
 void UpdateDrawFrame(GameState* state)
@@ -49,3 +83,4 @@ void UpdateDrawFrame(GameState* state)
 
     SDL_Delay(1000 / FPS);
 }
+#endif /* GAME_STANDALONE */

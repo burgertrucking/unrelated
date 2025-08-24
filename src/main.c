@@ -1,13 +1,15 @@
-#define HIMPL /* symbol to load header file implementations as well as declarations */
-#include "SDL/SDL.h"
-#include "game.h"
-#include "includeall.c"
+#include "SDL.h"
 
 #ifdef ENABLE_HOT_RELOADING
+	#define HOTRELOAD_IMPL
 	#include "hotreload.c"
-#else
 	#include "game.c"
-#endif
+	#define HIMPL
+	#include "statusflags.c"
+#else
+	#define GAME_STANDALONE /* include the implementation in a static build */
+	#include "game.c"
+#endif /* ENABLE_HOT_RELOADING */
 
 int main(int argc, char** argv)
 {

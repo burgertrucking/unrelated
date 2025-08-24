@@ -1,13 +1,15 @@
-#include "SDL/SDL.h"
-#include "game.h"
-#include "includeall.c"
+#include "SDL.h"
 
-/* NOTE: hot reloading not yet implemented, need to modify makefile to support it */
 #ifdef ENABLE_HOT_RELOADING
-	#include "hotreload.h"
-#else
+	#define HOTRELOAD_IMPL
+	#include "hotreload.c"
 	#include "game.c"
-#endif
+	#define HIMPL
+	#include "statusflags.c"
+#else
+	#define GAME_STANDALONE /* include the implementation in a static build */
+	#include "game.c"
+#endif /* ENABLE_HOT_RELOADING */
 
 int main(int argc, char** argv)
 {

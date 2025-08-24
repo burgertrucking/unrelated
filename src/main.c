@@ -1,52 +1,57 @@
 #include "SDL.h"
 
 #ifdef ENABLE_HOT_RELOADING
-	#define HOTRELOAD_IMPL
+	#define HOTRELOAD_C
 	#include "hotreload.c"
 	#include "game.c"
-	#define HIMPL
-	#include "statusflags.c"
+	#include "statusflag.h"
+	#define BITFLAG_C
+	#include "bitflag.c"
 #else
 	#define GAME_STANDALONE /* include the implementation in a static build */
 	#include "game.c"
 #endif /* ENABLE_HOT_RELOADING */
 
-int main(int argc, char** argv)
+int main(int argc, char* argv[])
 {
+	int err = 0;
 	#ifdef ENABLE_HOT_RELOADING
-        int err = LoadGameDll();
+        err = LoadGameDll();
         if (err) return err;
 	    printf("Hot reloading enabled, press F5 to re-load game dll\n");
 	#endif
 
 	/* init */
-	SDL_Init(SDL_INIT_EVERYTHING);
-	SDL_SetVideoMode(640, 480, 0, SDL_SWSURFACE);
-	SDL_WM_SetCaption("Test Window", NULL);
+	err = SDL_Init(SDL_INIT_EVERYTHING);
+	if (err) return err;
 	GameState state;
 	#ifdef ENABLE_HOT_RELOADING
-		gameDll.InitGame(&state);
+		err = gameDll.InitGame(&state);
+		if (err) return err;
 	#else
-		InitGame(&state);
+		err = InitGame(&state);
+		if (err) return err;
 	#endif
 
 	/* update + draw */
 	while (!CheckFlag(state.statusFlags, STATUS_QUIT))
 	{
 		#ifdef ENABLE_HOT_RELOADING
-			gameDll.UpdateDrawFrame(&state);
+			err = gameDll.UpdateDrawFrame(&state);
+			if (err) return err;
 			if (CheckFlag(state.statusFlags, STATUS_HOT_RELOAD))
 			{
 				HandleHotReload();
 				ClearFlag(&state.statusFlags, STATUS_HOT_RELOAD);
 			}
 		#else
-			UpdateDrawFrame(&state);
+			err = UpdateDrawFrame(&state);
+			if (err) return err;
 		#endif
 	}
 	
 	/* quit */
 	SDL_Quit();
 
-	return 0;
+	return err;
 }

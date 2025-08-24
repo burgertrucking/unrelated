@@ -2,11 +2,11 @@
 #ifndef HOTRELOAD_H
 #define HOTRELOAD_H
 
-#ifdef HOTRELOAD_IMPL
+#ifdef HOTRELOAD_C
 #define HDEF static
 #else
 #define HDEF extern
-#endif /* HOTRELOAD_IMPL */
+#endif /* HOTRELOAD_C */
 
 #include "game.c"
 
@@ -21,7 +21,6 @@
     typedef void* ProcHandle;
 #elif defined(_WIN32)
     #include <windef.h> /* data types */
-
     HDEF const char* dllPath;
     HDEF const char* tempPath;
     HDEF HMODULE LoadLib(LPCSTR f);
@@ -32,7 +31,7 @@
     typedef FARPROC ProcHandle;
 #endif /* __unix */
 
-typedef void (*gameStateFn)(GameState*);
+typedef int (*gameStateFn)(GameState*);
 
 HDEF struct GameDll
 {
@@ -47,8 +46,7 @@ HDEF int HandleHotReload(void);
 #endif /* HOTRELOAD_H */
 
 /* implementation */
-/* uses a different symbol than the rest of the header files, since including hotreload should be unique to main */
-#ifdef HOTRELOAD_IMPL
+#ifdef HOTRELOAD_C
 
 #include "SDL.h"
 #include <stdio.h>
@@ -173,4 +171,4 @@ HDEF int HandleHotReload(void)
     return 0;
 }
 
-#endif /* HOTRELOAD_IMPL */
+#endif /* HOTRELOAD_C */

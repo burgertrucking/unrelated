@@ -12,7 +12,8 @@
 	#include "game.c"
 #endif /* ENABLE_HOT_RELOADING */
 
-int main(int argc, char* argv[])
+/* TODO figure out sdl_main to circumvent the need for this */
+int main(int argc, char* argv[]) 
 /* int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) */
 {
 	int err = 0;

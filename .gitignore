@@ -1,3 +1,4 @@
-build/*
-_temp.dll
+unrelated*
+*.dll
+*.so
 compile_flags.txt

@@ -1,3 +1,9 @@
 [submodule "res/edit"]
 	path = res/edit
 	url = git@github.com:burgertrucking/res-edit.git
+[submodule "res/deriv"]
+	path = res/deriv
+	url = git@github.com:burgertrucking/res-deriv.git
+[submodule "res/rip"]
+	path = res/rip
+	url = git@github.com:burgertrucking/res-rip.git

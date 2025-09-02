@@ -12,7 +12,7 @@ enum
     RES_WIDTH = 320,
     RES_HEIGHT = 240,
     SCREEN_BPP = 0, /* native bpp */
-    FPS = 30,
+    TICK_RATE = 30,
 };
 
 typedef struct GameState
@@ -77,7 +77,7 @@ int UpdateDrawFrame(GameState* state)
     /* Draw */
     err = DrawGame(state);
 
-    SDL_Delay(1000 / FPS);
+    SDL_Delay(1000 / TICK_RATE);
 
     return err;
 }
@@ -142,6 +142,13 @@ static void HandleEvents(GameState* state)
                         SetFlag(&state->vPad, VKEY_RIGHT);
                     break;
 
+                    case SDLK_x:
+                    case SDLK_LSHIFT:
+                    case SDLK_RSHIFT:
+                        /* NOTE consider making key aliases so eg pressing shift while x is held still counts */
+                        SetFlag(&state->vPad, VKEY_CANCEL);
+                    break;
+
                     default:
                     break;
                 }
@@ -164,6 +171,12 @@ static void HandleEvents(GameState* state)
 
                     case SDLK_RIGHT:
                         ClearFlag(&state->vPad, VKEY_RIGHT);
+                    break;
+
+                    case SDLK_x:
+                    case SDLK_LSHIFT:
+                    case SDLK_RSHIFT:
+                        ClearFlag(&state->vPad, VKEY_CANCEL);
                     break;
 
                     default:

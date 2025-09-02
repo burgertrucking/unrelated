@@ -8,5 +8,7 @@
 #include "input.c"
 #define BITFLAG_C
 #include "bitflag.c"
+#define UTILS_C
+#include "utils.c"
 
 #endif /* ALL_C */

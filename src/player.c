@@ -6,9 +6,11 @@
 
 typedef struct Player {
     SDL_Surface* sprite;
-    unsigned int animFrames;
-    Sint16 x;
-    Sint16 y;
+    float x;
+    float y;
+    unsigned int frameCount;
+    unsigned int animFrame;
+    unsigned int facing;
 } Player;
 
 int InitPlayer(Player* p);
@@ -23,6 +25,14 @@ void DrawPlayer(Player* p, SDL_Surface* screen);
 /* constants */
 enum
 {
+    PLAYER_SPRITE_WIDTH = 19,
+    PLAYER_SPRITE_HEIGHT = 38,
+
+    PLAYER_FACE_DOWN = 0,
+    PLAYER_FACE_LEFT,
+    PLAYER_FACE_RIGHT,
+    PLAYER_FACE_UP,
+
     PLAYER_WALK_SPEED = 3,
     PLAYER_RUN_SPEED = 5, /* TEMP UTY values as placeholders until accelerated running is implemented */
     PLAYER_WALK_FPS = 5,
@@ -42,28 +52,59 @@ int InitPlayer(Player* p)
         fprintf(stderr, "InitPlayer: Could not load sprite\n");
         return 1;
     }
-    p->animFrames = 0;
-    p->x = 0;
-    p->y = 0;
+    p->animFrame = 0;
+    p->facing = PLAYER_FACE_DOWN;
+    p->x = 0.0f;
+    p->y = 0.0f;
 
     return 0;
 }
 
 void UpdatePlayer(Player* p, Uint8 vPad)
 {
-    int moveSpeed = (CheckFlag(vPad, VKEY_CANCEL))? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;
-    if (CheckFlag(vPad, VKEY_DOWN)) p->y += moveSpeed;
-    if (CheckFlag(vPad, VKEY_UP)) p->y -= moveSpeed;
-    if (CheckFlag(vPad, VKEY_RIGHT)) p->x += moveSpeed;
-    if (CheckFlag(vPad, VKEY_LEFT)) p->x -= moveSpeed;
+    SDL_bool isRunning = CheckFlag(vPad, VKEY_CANCEL);
+    int moveSpeed = isRunning? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;
+    /* TODO make turning act like it does in the real game, where you maintain direction unless 180ing */
+    if (CheckFlag(vPad, VKEY_DOWN))
+    {
+        p->y += moveSpeed;
+        p->facing = PLAYER_FACE_DOWN;
+    }
+    if (CheckFlag(vPad, VKEY_UP))
+    {
+        p->y -= moveSpeed;
+        p->facing = PLAYER_FACE_UP;
+    }
+    if (CheckFlag(vPad, VKEY_RIGHT))
+    {
+        p->x += moveSpeed;
+        p->facing = PLAYER_FACE_RIGHT;
+    }
+    if (CheckFlag(vPad, VKEY_LEFT))
+    {
+        p->x -= moveSpeed;
+        p->facing = PLAYER_FACE_LEFT;
+    }
 
-    ++p->animFrames;
+    /* TODO play animations depending on whether or not you're moving */
+    int animFps = isRunning? PLAYER_RUN_FPS : PLAYER_WALK_FPS;
+    ++p->frameCount;
+    /* HACK using TICK_RATE without proper import from game.c, import properly */
+    if (p->frameCount >= TICK_RATE/animFps)
+    {
+        p->frameCount = 0;
+        ++p->animFrame;
+        if (p->animFrame >= 4) p->animFrame = 0;
+    }
 }
 
 void DrawPlayer(Player* p, SDL_Surface* screen)
 {
-    SDL_Rect drawRect = (SDL_Rect){ p->x, p->y, 0, 0 };
-    SDL_BlitSurface(p->sprite, NULL, screen, &drawRect);
+    SDL_Rect srcRect = (SDL_Rect){
+        p->animFrame*PLAYER_SPRITE_WIDTH, p->facing*PLAYER_SPRITE_HEIGHT,
+        PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT
+    };
+    BlitSurfaceCoords(p->sprite, &srcRect, screen, p->x, p->y);
 }
 
 #endif /* PLAYER_C */

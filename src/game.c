@@ -9,16 +9,20 @@
 /* anonymous enum for constants */
 enum
 {
-    RES_WIDTH = 320,
-    RES_HEIGHT = 240,
-    SCREEN_BPP = 0, /* native bpp */
+    RES_WIDTH = 640,
+    RES_HEIGHT = 480,
+    WORLD_RES_WIDTH = 320,
+    WORLD_RES_HEIGHT = 240,
+    SCREEN_BPP = 32, /* prefer 32 bit colour depth */
     TICK_RATE = 30,
 };
 
 typedef struct GameState
 {
     Player player;
-    SDL_Surface* screen;
+    SDL_Surface* screen; /* framebuffer surface */
+    SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
+    SDL_Surface* vScreen480; /* 640 x 480 "game screen" for rendering the game's full image */
     SDL_Event event;
     Uint8 vPad;
     Uint8 statusFlags;
@@ -53,10 +57,15 @@ int InitGame(GameState* state)
 {
     int err = 0;
 
-	state->screen = SDL_SetVideoMode(RES_WIDTH, RES_HEIGHT, SCREEN_BPP, SDL_SWSURFACE);
+	state->screen = SDL_SetVideoMode(RES_WIDTH, RES_HEIGHT, SCREEN_BPP, SDL_SWSURFACE|SDL_RESIZABLE|SDL_ANYFORMAT);
 	if (!state->screen) return 1; /* STUB */
 	SDL_WM_SetCaption("UNRELATED", NULL);
-
+    /* pixel format for current monitor, used for creating game's virtual screens */
+	SDL_PixelFormat pf = *state->screen->format;
+	state->vScreen240 = SDL_CreateRGBSurface(SDL_SWSURFACE, WORLD_RES_WIDTH, WORLD_RES_HEIGHT,
+	                                         pf.BitsPerPixel, pf.Rmask, pf.Gmask, pf.Bmask, pf.Amask);
+	state->vScreen480 = SDL_CreateRGBSurface(SDL_SWSURFACE, RES_WIDTH, RES_HEIGHT,
+	                                         pf.BitsPerPixel, pf.Rmask, pf.Gmask, pf.Bmask, pf.Amask);
     state->statusFlags = 0; /* clear all flags */
 
     err = InitPlayer(&state->player);
@@ -97,9 +106,22 @@ static int DrawGame(GameState* state)
 {
     int err = 0;
 
-    /* draw a green background over the screen */
-    SDL_FillRect(state->screen, &state->screen->clip_rect, SDL_MapRGB(state->screen->format, 0, 180, 60));
-    DrawPlayer(&state->player, state->screen);
+    /* vscreen240 (world) */
+    /* draw a green background over the world screen */
+    SDL_FillRect(state->vScreen240, NULL, SDL_MapRGB(state->vScreen240->format, 0, 180, 60));
+    DrawPlayer(&state->player, state->vScreen240);
+
+    /* vscreen480 (game) */
+    /* TODO scale vscreen240 to the bounds of vscreen480 */
+    /* draw a blue background over the game screen */
+    SDL_FillRect(state->vScreen480, NULL, SDL_MapRGB(state->vScreen480->format, 0, 60, 180));
+    BlitSurfaceCoords(state->vScreen240, NULL, state->vScreen480, 320/2, 240/2);
+
+    /* screen (the actual window) */
+    /* draw a black background over the framebuffer */
+    SDL_FillRect(state->screen, NULL, 0);
+    /* TODO scale the game screen to be nearest neighbour scaled to the centre of the window */
+    BlitSurfaceCoords(state->vScreen480, NULL, state->screen, 0, 0);
 
     SDL_Flip(state->screen);
     return err;
@@ -113,6 +135,12 @@ static void HandleEvents(GameState* state)
         {
             case SDL_QUIT:
                 SetFlag(&state->statusFlags, STATUS_QUIT);
+            break;
+
+            SDL_ResizeEvent re;
+            case SDL_VIDEORESIZE:
+                re = state->event.resize;
+                printf("stubberino for video resize, size %d x %d\n", re.w, re.h);
             break;
 
             case SDL_KEYDOWN:

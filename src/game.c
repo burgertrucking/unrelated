@@ -13,8 +13,8 @@ enum
     RES_HEIGHT = 480,
     WORLD_RES_WIDTH = 320,
     WORLD_RES_HEIGHT = 240,
-    SCREEN_BPP = 32, /* prefer 32 bit colour depth */
-    TICK_RATE = 30,
+    SCREEN_BPP = 0, /* native colour depth */
+    TICKS_PER_SECOND = 30,
 };
 
 typedef struct GameState
@@ -46,9 +46,17 @@ int UpdateDrawFrame(GameState* state);
 #include "SDL.h"
 #include "all.c"
 
+/* anonymous enum for constants (private to module) */
+enum
+{
+    TICK_RATE = 1000 / TICKS_PER_SECOND,
+};
+
 static int UpdateGame(GameState* state);
 static int DrawGame(GameState* state);
 static void HandleEvents(GameState* state);
+/* calls SDL_SetVideoMode() with a given width and height; used to get a new screen when resizing the window*/
+static SDL_Surface* SetVideoRes(int width, int height);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
@@ -57,7 +65,7 @@ int InitGame(GameState* state)
 {
     int err = 0;
 
-	state->screen = SDL_SetVideoMode(RES_WIDTH, RES_HEIGHT, SCREEN_BPP, SDL_SWSURFACE|SDL_RESIZABLE|SDL_ANYFORMAT);
+	state->screen = SetVideoRes(RES_WIDTH, RES_HEIGHT);
 	if (!state->screen) return 1; /* STUB */
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
@@ -78,6 +86,7 @@ int InitGame(GameState* state)
 #endif
 int UpdateDrawFrame(GameState* state)
 {
+    Uint32 start = SDL_GetTicks();
     int err = 0;
 
     /* Update */
@@ -86,7 +95,15 @@ int UpdateDrawFrame(GameState* state)
     /* Draw */
     err = DrawGame(state);
 
-    SDL_Delay(1000 / TICK_RATE);
+    Uint32 end = SDL_GetTicks();
+    Uint32 renderTime = end - start;
+    Uint32 delay = (TICK_RATE < renderTime)? 0 : TICK_RATE - renderTime;
+
+    /* NOTE these make the game run a lot slower, consider adding ingame fps or frametime overlay */
+    /* printf("UpdateDrawFrame: time taken to update + render frame: %d ms\n", renderTime); */
+    if (!delay) printf("UpdateDrawFrame: running slower than %dfps, time taken is %d ms\n", TICKS_PER_SECOND, renderTime);
+    SDL_Delay(delay);
+    /* SDL_Delay(1000 / TICK_RATE); */
 
     return err;
 }
@@ -112,16 +129,15 @@ static int DrawGame(GameState* state)
     DrawPlayer(&state->player, state->vScreen240);
 
     /* vscreen480 (game) */
-    /* TODO scale vscreen240 to the bounds of vscreen480 */
-    /* draw a blue background over the game screen */
-    SDL_FillRect(state->vScreen480, NULL, SDL_MapRGB(state->vScreen480->format, 0, 60, 180));
-    BlitSurfaceCoords(state->vScreen240, NULL, state->vScreen480, 320/2, 240/2);
+    /* scale vscreen240 to size of vscreen480 */
+    BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
     SDL_FillRect(state->screen, NULL, 0);
     /* TODO scale the game screen to be nearest neighbour scaled to the centre of the window */
-    BlitSurfaceCoords(state->vScreen480, NULL, state->screen, 0, 0);
+    /* (currently stretched to window) */
+    BlitSurfaceScaled(state->vScreen480, NULL, state->screen, 0, 0, 0.0f, 0.0f);
 
     SDL_Flip(state->screen);
     return err;
@@ -140,7 +156,8 @@ static void HandleEvents(GameState* state)
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
-                printf("stubberino for video resize, size %d x %d\n", re.w, re.h);
+                SDL_FreeSurface(state->screen);
+                state->screen = SetVideoRes(re.w, re.h);
             break;
 
             case SDL_KEYDOWN:
@@ -213,6 +230,12 @@ static void HandleEvents(GameState* state)
             break;
         }
     }
+}
+
+static SDL_Surface* SetVideoRes(int width, int height)
+{
+    printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
+    return SDL_SetVideoMode(width, height, SCREEN_BPP, SDL_SWSURFACE|SDL_RESIZABLE|SDL_ANYFORMAT);
 }
 
 #endif /* GAME_STANDALONE */

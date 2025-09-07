@@ -89,8 +89,8 @@ void UpdatePlayer(Player* p, Uint8 vPad)
     /* TODO play animations depending on whether or not you're moving */
     int animFps = isRunning? PLAYER_RUN_FPS : PLAYER_WALK_FPS;
     ++p->frameCount;
-    /* HACK using TICK_RATE without proper import from game.c, import properly */
-    if (p->frameCount >= TICK_RATE/animFps)
+    /* HACK using TICKS_PER_SECOND without proper import from game.c, import properly */
+    if (p->frameCount >= TICKS_PER_SECOND/animFps)
     {
         p->frameCount = 0;
         ++p->animFrame;

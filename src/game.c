@@ -135,22 +135,22 @@ static int DrawGame(GameState* state)
     /* draw a black background over the framebuffer */
     err = SDL_FillRect(state->screen, NULL, 0);
     /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
+    /* TODO separate this into a function, possibly with static variables (or use a static global) */
     /* currently letterboxes */
-    int x, y;
-    float w, h;
-    if (state->screen->w > state->screen->h)
+    int x = 0, y = 0;
+    float scale;
+    SDL_bool landscape = state->screen->w >= state->screen->h*4.0f/3.0f;
+    if (landscape)
     {
-        h = (float)state->screen->h / RES_HEIGHT;
-        w = h;
+        scale = (float)state->screen->h / RES_HEIGHT;
+        x = (state->screen->w - RES_WIDTH*scale)/2.0f;
     }
     else
     {
-        /* FIXME crashes */
-        w = (float)state->screen->w / RES_WIDTH;
-        h = w;
+        scale = (float)state->screen->w / RES_WIDTH;
+        y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
     }
-    x = 0, y = 0; /* TODO move to middle of screen */
-    err = BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, w, h);
+    err = BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, scale, scale);
 
     SDL_Flip(state->screen);
     return err;
@@ -176,6 +176,7 @@ static void HandleEvents(GameState* state)
             case SDL_KEYDOWN:
                 switch (state->event.key.keysym.sym)
                 {
+                    /* NOTE consider using keystates instead of doing this */
                     case SDLK_ESCAPE:
                         SetFlag(&state->statusFlags, STATUS_QUIT);
                     break;
@@ -231,6 +232,8 @@ static void HandleEvents(GameState* state)
                         ClearFlag(&state->vPad, VKEY_RIGHT);
                     break;
 
+                    /* FIXME releasing one of these aliased keys will count as a depress even if another alias is
+                    still held down */
                     case SDLK_x:
                     case SDLK_LSHIFT:
                     case SDLK_RSHIFT:

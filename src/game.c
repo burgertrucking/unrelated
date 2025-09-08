@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include "input.c"
 #include "player.c"
+#include "statusflag.h"
 
 /* anonymous enum for constants */
 enum
@@ -57,6 +58,7 @@ static int DrawGame(GameState* state);
 static void HandleEvents(GameState* state);
 /* calls SDL_SetVideoMode() with a given width and height; used to get a new screen when resizing the window*/
 static SDL_Surface* SetVideoRes(int width, int height);
+static int DrawVScreenScaled(GameState* state);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
@@ -95,10 +97,13 @@ int UpdateDrawFrame(GameState* state)
     /* Draw */
     err = DrawGame(state);
 
+    /* Clear non-persistent flags */
+    ClearFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+
+    /* Delay between frames (effective 30 FPS lock) */
     Uint32 end = SDL_GetTicks();
     Uint32 renderTime = end - start;
     Uint32 delay = (renderTime < TICK_RATE)? TICK_RATE - renderTime : 0;
-
     /* NOTE these make the game run a lot slower, consider adding ingame fps or frametime overlay */
     /* printf("UpdateDrawFrame: time taken to update + render frame: %d ms\n", renderTime); */
     if (!delay) printf("UpdateDrawFrame: running slower than %dfps, time taken is %d ms\n", TICKS_PER_SECOND, renderTime);
@@ -134,23 +139,7 @@ static int DrawGame(GameState* state)
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
     err = SDL_FillRect(state->screen, NULL, 0);
-    /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
-    /* TODO separate this into a function, possibly with static variables (or use a static global) */
-    /* currently letterboxes */
-    int x = 0, y = 0;
-    float scale;
-    SDL_bool landscape = state->screen->w >= state->screen->h*4.0f/3.0f;
-    if (landscape)
-    {
-        scale = (float)state->screen->h / RES_HEIGHT;
-        x = (state->screen->w - RES_WIDTH*scale)/2.0f;
-    }
-    else
-    {
-        scale = (float)state->screen->w / RES_WIDTH;
-        y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
-    }
-    err = BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, scale, scale);
+    err = DrawVScreenScaled(state);
 
     SDL_Flip(state->screen);
     return err;
@@ -171,6 +160,7 @@ static void HandleEvents(GameState* state)
                 re = state->event.resize;
                 SDL_FreeSurface(state->screen);
                 state->screen = SetVideoRes(re.w, re.h);
+                SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
             break;
 
             case SDL_KEYDOWN:
@@ -252,6 +242,33 @@ static SDL_Surface* SetVideoRes(int width, int height)
 {
     printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
     return SDL_SetVideoMode(width, height, SCREEN_BPP, SDL_SWSURFACE|SDL_RESIZABLE|SDL_ANYFORMAT);
+}
+
+static int DrawVScreenScaled(GameState* state)
+{
+    /* FIXME sometimes the calculation fails if you rapidly resize the window */
+    /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
+    /* currently letterboxes */
+    static int x, y;
+    static float scale;
+    static SDL_bool landscape, resized = SDL_TRUE;
+    if (CheckFlag(state->statusFlags, STATUS_WINDOW_RESIZED)) resized = SDL_TRUE;
+    if (resized)
+    {
+        landscape = state->screen->w >= state->screen->h*4.0f/3.0f;
+        if (landscape)
+        {
+            scale = (float)state->screen->h / RES_HEIGHT;
+            x = (state->screen->w - RES_WIDTH*scale)/2.0f;
+        }
+        else
+        {
+            scale = (float)state->screen->w / RES_WIDTH;
+            y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
+        }
+        resized = SDL_FALSE;
+    }
+    return BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, scale, scale);
 }
 
 #endif /* GAME_STANDALONE */

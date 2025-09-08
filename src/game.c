@@ -97,13 +97,12 @@ int UpdateDrawFrame(GameState* state)
 
     Uint32 end = SDL_GetTicks();
     Uint32 renderTime = end - start;
-    Uint32 delay = (TICK_RATE < renderTime)? 0 : TICK_RATE - renderTime;
+    Uint32 delay = (renderTime < TICK_RATE)? TICK_RATE - renderTime : 0;
 
     /* NOTE these make the game run a lot slower, consider adding ingame fps or frametime overlay */
     /* printf("UpdateDrawFrame: time taken to update + render frame: %d ms\n", renderTime); */
     if (!delay) printf("UpdateDrawFrame: running slower than %dfps, time taken is %d ms\n", TICKS_PER_SECOND, renderTime);
     SDL_Delay(delay);
-    /* SDL_Delay(1000 / TICK_RATE); */
 
     return err;
 }
@@ -126,18 +125,32 @@ static int DrawGame(GameState* state)
     /* vscreen240 (world) */
     /* draw a green background over the world screen */
     SDL_FillRect(state->vScreen240, NULL, SDL_MapRGB(state->vScreen240->format, 0, 180, 60));
-    DrawPlayer(&state->player, state->vScreen240);
+    err = DrawPlayer(&state->player, state->vScreen240);
 
     /* vscreen480 (game) */
     /* scale vscreen240 to size of vscreen480 */
-    BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
+    err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
-    SDL_FillRect(state->screen, NULL, 0);
-    /* TODO scale the game screen to be nearest neighbour scaled to the centre of the window */
-    /* (currently stretched to window) */
-    BlitSurfaceScaled(state->vScreen480, NULL, state->screen, 0, 0, 0.0f, 0.0f);
+    err = SDL_FillRect(state->screen, NULL, 0);
+    /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
+    /* currently letterboxes */
+    int x, y;
+    float w, h;
+    if (state->screen->w > state->screen->h)
+    {
+        h = (float)state->screen->h / RES_HEIGHT;
+        w = h;
+    }
+    else
+    {
+        /* FIXME crashes */
+        w = (float)state->screen->w / RES_WIDTH;
+        h = w;
+    }
+    x = 0, y = 0; /* TODO move to middle of screen */
+    err = BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, w, h);
 
     SDL_Flip(state->screen);
     return err;

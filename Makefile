@@ -10,7 +10,7 @@ PREFIX = /usr/local
 SDL_INCLUDE_PATH = $(PREFIX)/include/SDL
 LINK_PATH = $(PREFIX)/lib
 
-FLAGS = -Wall -Wextra --std=c89 -g
+FLAGS = -Wall -Wextra --std=c89 -g -O0
 FLAGS_SHARED = -fPIC -shared
 LIBS = -lSDL -lSDL_image
 RPATH = -Wl,-rpath,'$$ORIGIN'

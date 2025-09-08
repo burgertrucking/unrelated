@@ -3,6 +3,7 @@
 #define UTILS_H
 
 #include "SDL.h"
+#include "SDL_video.h"
 
 /* Load a png image and save it to an SDL_Surface with the same format as the screen */
 SDL_Surface* LoadImage(const char* file);
@@ -34,10 +35,10 @@ int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int
 
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int x, int y, float scaleX, float scaleY)
 {
-    SDL_Rect dstRect = (SDL_Rect){ x, y, x*scaleX, x*scaleY };
-    /* HACK using internal api since 1.2 doesn't have a SDL_BlitSurfaceScaled() equivalent */
-    /* TEMP using NULL for dstRec since I'm currently unsure what the expected parameter is */
-    return SDL_SoftStretch(src, srcRect, dst, NULL);
+    /* NOTE dimension validation is handled by SDL_SoftStretch() rather than here */
+    SDL_Rect dstRect = (SDL_Rect){ x, y, src->w*scaleX, src->h*scaleY };
+    /* NOTE using internal api since 1.2 doesn't have a SDL_BlitSurfaceScaled() equivalent */
+    return SDL_SoftStretch(src, srcRect, dst, &dstRect);
 }
 
 #endif

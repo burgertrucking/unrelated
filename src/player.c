@@ -15,7 +15,7 @@ typedef struct Player {
 
 int InitPlayer(Player* p);
 void UpdatePlayer(Player* p, Uint8 vPad);
-void DrawPlayer(Player* p, SDL_Surface* screen);
+int DrawPlayer(Player* p, SDL_Surface* screen);
 
 #endif /* PLAYER_H */
 
@@ -98,13 +98,13 @@ void UpdatePlayer(Player* p, Uint8 vPad)
     }
 }
 
-void DrawPlayer(Player* p, SDL_Surface* screen)
+int DrawPlayer(Player* p, SDL_Surface* screen)
 {
     SDL_Rect srcRect = (SDL_Rect){
         p->animFrame*PLAYER_SPRITE_WIDTH, p->facing*PLAYER_SPRITE_HEIGHT,
         PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT
     };
-    BlitSurfaceCoords(p->sprite, &srcRect, screen, p->x, p->y);
+    return BlitSurfaceCoords(p->sprite, &srcRect, screen, p->x, p->y);
 }
 
 #endif /* PLAYER_C */

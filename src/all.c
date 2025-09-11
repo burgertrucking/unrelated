@@ -11,4 +11,8 @@
 #define UTILS_C
 #include "utils.c"
 
+#define SDL_STBIMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "SDL_stbimage.h"
+
 #endif /* ALL_C */

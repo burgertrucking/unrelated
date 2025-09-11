@@ -12,7 +12,7 @@ LINK_PATH = $(PREFIX)/lib
 
 FLAGS = -Wall -Wextra --std=c89 -g -O0
 FLAGS_SHARED = -fPIC -shared
-LIBS = -lSDL -lSDL_image
+LIBS = -lSDL
 RPATH = -Wl,-rpath,'$$ORIGIN'
 
 all: debugshared

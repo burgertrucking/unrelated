@@ -17,11 +17,11 @@ int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int
 /* implementation */
 #ifdef UTILS_C
 
-#include "SDL_image.h"
+#include "SDL_stbimage.h"
 
 SDL_Surface* LoadImage(const char* file)
 {
-    SDL_Surface* orig = IMG_Load(file); /* raw loaded image */
+    SDL_Surface* orig = STBIMG_Load(file); /* raw loaded image */
     SDL_Surface* native = SDL_DisplayFormatAlpha(orig); /* native to screen format */
     SDL_FreeSurface(orig);
     return native;

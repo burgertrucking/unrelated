@@ -78,6 +78,9 @@ int InitGame(GameState* state)
 	state->vScreen480 = SDL_CreateRGBSurface(SDL_SWSURFACE, RES_WIDTH, RES_HEIGHT,
 	                                         pf.BitsPerPixel, pf.Rmask, pf.Gmask, pf.Bmask, pf.Amask);
     state->statusFlags = 0; /* clear all flags */
+    state->vPad = 0; /* clear all virtual pad inputs, prevents ghost inputs at startup */
+    SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */
+    SDL_ShowCursor(0);
 
     err = InitPlayer(&state->player);
 

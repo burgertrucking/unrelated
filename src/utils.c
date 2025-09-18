@@ -35,8 +35,21 @@ int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int
 
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int x, int y, float scaleX, float scaleY)
 {
-    /* NOTE dimension validation is handled by SDL_SoftStretch() rather than here */
-    SDL_Rect dstRect = (SDL_Rect){ x, y, src->w*scaleX, src->h*scaleY };
+    SDL_Rect dims;
+    dims = srcRect? *srcRect : src->clip_rect;
+    Uint16 w = dims.w*scaleX, h = dims.h*scaleY;
+    /* TEMP dimension validation: will force an incorrect but working stretch if invalid */
+    if ((x + w) > dst->w)
+    {
+        w = dst->w - x;
+        fprintf(stderr, "WARNING: BlitSurfaceScaled: Requested stretch width %i too wide, cutting to %i\n", x+w, w);
+    }
+    if ((y + h) > dst->h)
+    {
+        h = dst->h - y;
+        fprintf(stderr, "WARNING: BlitSurfaceScaled: Requested stretch height %i too tall, cutting to %i\n", y+h, h);
+    }
+    SDL_Rect dstRect = (SDL_Rect){ x, y, w, h };
     /* NOTE using internal api since 1.2 doesn't have a SDL_BlitSurfaceScaled() equivalent */
     return SDL_SoftStretch(src, srcRect, dst, &dstRect);
 }

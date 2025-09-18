@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 			}
 		#else
 			err = UpdateDrawFrame(&state);
-			if (err) HandleError(err, "UpdateDrawFrame");
+			if (err) LogError(err, "UpdateDrawFrame");
 		#endif
 	}
 	
@@ -61,6 +61,6 @@ int main(int argc, char* argv[])
 
 int LogError(int err, const char* callerFn)
 {
-	fprintf(stderr, "%s returned error: `%s`\n", callerFn, SDL_GetError());
+	fprintf(stderr, "WARNING: %s returned error: `%s`\n", callerFn, SDL_GetError());
 	return err;
 }

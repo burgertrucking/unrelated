@@ -13,6 +13,8 @@
 
 #define SDL_STBIMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
+#define STBI_NO_LINEAR
+#define STBI_NO_HDR
 #include "SDL_stbimage.h"
 
 #endif /* ALL_C */

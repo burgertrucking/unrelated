@@ -57,8 +57,8 @@ enum
 static int UpdateGame(GameState* state);
 static int DrawGame(GameState* state);
 static void HandleEvents(GameState* state);
-/* calls SDL_SetVideoMode() with a given width and height; used to get a new screen when resizing the window*/
-static SDL_Surface* SetVideoRes(int width, int height, Uint32 flags);
+/* calls SDL_SetVideoMode() with a given width and height, and sets relevant state info accordingly */
+static void SetVideoRes(GameState* state, int width, int height, Uint32 flags);
 static int DrawVScreenScaled(GameState* state);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
@@ -68,7 +68,7 @@ int InitGame(GameState* state)
 {
     int err = 0;
 
-	state->screen = SetVideoRes(WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+	SetVideoRes(state, RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
 	if (!state->screen) return 1; /* STUB */
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
@@ -161,9 +161,7 @@ static void HandleEvents(GameState* state)
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
-                SDL_FreeSurface(state->screen);
-                state->screen = SetVideoRes(re.w, re.h, DEFAULT_VIDEO_FLAGS);
-                SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                SetVideoRes(state, re.w, re.h, DEFAULT_VIDEO_FLAGS);
             */
             break;
 
@@ -180,16 +178,15 @@ static void HandleEvents(GameState* state)
                         if (CheckFlag(state->statusFlags, STATUS_FULLSCREEN))
                         {
                             ClearFlag(&state->statusFlags, STATUS_FULLSCREEN);
-                            SDL_FreeSurface(state->screen);
-                            state->screen = SetVideoRes(RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+                            /* TODO save previous non-fullscreen scale instead of hardcoding to 2x */
+                            SetVideoRes(state, RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
                         }
                         else
                         {
                             SetFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             modes = SDL_ListModes(NULL, SDL_FULLSCREEN);
-                            SDL_FreeSurface(state->screen);
                             /* TEMP hardcoded to highest res */
-                            state->screen = SetVideoRes(modes[0]->w, modes[0]->h, SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS);
+                            SetVideoRes(state, modes[0]->w, modes[0]->h, SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS);
                         }
                         SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
                     break;
@@ -206,33 +203,27 @@ static void HandleEvents(GameState* state)
                     /* NOTE these number inputs may conflict with ut debug mode inputs */
                     /* TODO make these options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
-                        SetVideoRes(WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     case SDLK_2:
-                        SetVideoRes(WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     case SDLK_3:
-                        SetVideoRes(WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     case SDLK_4:
-                        SetVideoRes(WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     case SDLK_5:
-                        SetVideoRes(WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     case SDLK_6:
-                        SetVideoRes(WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, DEFAULT_VIDEO_FLAGS);
-                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                        SetVideoRes(state, WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, DEFAULT_VIDEO_FLAGS);
                     break;
 
                     /* TODO add UT debug mode inputs */
@@ -302,28 +293,33 @@ static void HandleEvents(GameState* state)
     }
 }
 
-static SDL_Surface* SetVideoRes(int width, int height, Uint32 flags)
+static void SetVideoRes(GameState* state, int width, int height, Uint32 flags)
 {
     if (!flags)
     {
-        printf("WARNING: SetVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
+        fprintf(stderr, "WARNING: SetVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
         flags = DEFAULT_VIDEO_FLAGS;
     }
     printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
-    SDL_Surface* screen = SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
+    state->screen = SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
     SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */
-    return screen;
+    SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
 }
 
 static int DrawVScreenScaled(GameState* state)
 {
-    /* FIXME sometimes the calculation fails if you rapidly resize the window */
+    /* FIXME seems to fail when changing aspect ratios sometimes (eg 5:4 to 4:3) */
     /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
+    /* (right now this is worked around by making the available window sizes only integer scales) */
     /* currently letterboxes */
     static int x, y;
     static float scale;
     static SDL_bool landscape, resized = SDL_TRUE;
-    if (CheckFlag(state->statusFlags, STATUS_WINDOW_RESIZED)) resized = SDL_TRUE;
+    if (CheckFlag(state->statusFlags, STATUS_WINDOW_RESIZED))
+    {
+        ClearFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+        resized = SDL_TRUE;
+    }
     if (resized)
     {
         landscape = state->screen->w >= state->screen->h*4.0f/3.0f;

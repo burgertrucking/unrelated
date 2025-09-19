@@ -1,4 +1,6 @@
 unrelated*
 *.dll
 *.so
+*.swp
 compile_flags.txt
+tags

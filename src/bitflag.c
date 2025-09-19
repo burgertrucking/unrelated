@@ -4,10 +4,19 @@
 
 #include "SDL.h"
 
-void SetFlag(Uint8* flags, Uint8 val);
-void ClearFlag(Uint8* flags, Uint8 val);
-void ToggleFlag(Uint8* flags, Uint8 val);
-SDL_bool CheckFlag(Uint8 flags, Uint8 val);
+/* TEMP macro version */
+#define SetFlag(F, V) *F |= V
+#define ClearFlag(F, V) *F &= ~V
+#define ToggleFlag(F, V) *F ^= V
+#define CheckFlag(F, V) ((F & V) != 0)
+
+/* function version */
+/*
+void SetFlag(Uint32* flags, Uint32 val);
+void ClearFlag(Uint32* flags, Uint32 val);
+void ToggleFlag(Uint32* flags, Uint32 val);
+SDL_bool CheckFlag(Uint32 flags, Uint32 val);
+*/
 
 #endif /* BITFLAG_H */
 
@@ -16,24 +25,26 @@ SDL_bool CheckFlag(Uint8 flags, Uint8 val);
 
 #include "SDL.h"
 
-void SetFlag(Uint8* flags, Uint8 val)
+/*
+void SetFlag(Uint32* flags, Uint32 val)
 {
     *flags |= val;
 }
 
-void ClearFlag(Uint8* flags, Uint8 val)
+void ClearFlag(Uint32* flags, Uint32 val)
 {
     *flags &= ~val;
 }
 
-void ToggleFlag(Uint8* flags, Uint8 val)
+void ToggleFlag(Uint32* flags, Uint32 val)
 {
     *flags ^= val;
 }
 
-SDL_bool CheckFlag(Uint8 flags, Uint8 val)
+SDL_bool CheckFlag(Uint32 flags, Uint32 val)
 {
     return (flags & val) != 0;
 }
+*/
 
 #endif /* BITFLAG_C */

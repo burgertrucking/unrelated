@@ -3,7 +3,6 @@
 #define GAME_H
 
 #include "SDL.h"
-#include "SDL_video.h"
 #include "input.c"
 #include "player.c"
 #include "statusflag.h"
@@ -17,6 +16,7 @@ enum
     WORLD_RES_HEIGHT = 240,
     SCREEN_BPP = 0, /* native colour depth */
     TICKS_PER_SECOND = 30,
+    DEFAULT_VIDEO_FLAGS = SDL_SWSURFACE|SDL_ANYFORMAT, /* NOTE may eventually let machine decide hw vs sw rather than hardcoding */
 };
 
 typedef struct GameState
@@ -26,8 +26,8 @@ typedef struct GameState
     SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
     SDL_Surface* vScreen480; /* 640 x 480 "game screen" for rendering the game's full image */
     SDL_Event event;
-    Uint8 vPad;
-    Uint8 statusFlags;
+    Uint32 vPad;
+    Uint32 statusFlags;
 } GameState;
 
 #ifdef _WIN32
@@ -68,7 +68,7 @@ int InitGame(GameState* state)
 {
     int err = 0;
 
-	state->screen = SetVideoRes(RES_WIDTH, RES_HEIGHT, 0);
+	state->screen = SetVideoRes(WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
 	if (!state->screen) return 1; /* STUB */
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
@@ -79,8 +79,6 @@ int InitGame(GameState* state)
 	                                         pf.BitsPerPixel, pf.Rmask, pf.Gmask, pf.Bmask, pf.Amask);
     state->statusFlags = 0; /* clear all flags */
     state->vPad = 0; /* clear all virtual pad inputs, prevents ghost inputs at startup */
-    SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */
-    SDL_ShowCursor(0);
 
     err = InitPlayer(&state->player);
 
@@ -159,18 +157,20 @@ static void HandleEvents(GameState* state)
                 SetFlag(&state->statusFlags, STATUS_QUIT);
             break;
 
+            /* TEMP video resizing is disabled for now
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
                 SDL_FreeSurface(state->screen);
-                state->screen = SetVideoRes(re.w, re.h, 0);
+                state->screen = SetVideoRes(re.w, re.h, DEFAULT_VIDEO_FLAGS);
                 SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+            */
             break;
 
             case SDL_KEYDOWN:
                 switch (state->event.key.keysym.sym)
                 {
-                    /* NOTE consider using keystates instead of doing this */
+                    /* windowing inputs */
                     case SDLK_ESCAPE:
                         SetFlag(&state->statusFlags, STATUS_QUIT);
                     break;
@@ -181,7 +181,7 @@ static void HandleEvents(GameState* state)
                         {
                             ClearFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             SDL_FreeSurface(state->screen);
-                            state->screen = SetVideoRes(RES_WIDTH, RES_HEIGHT, 0);
+                            state->screen = SetVideoRes(RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
                         }
                         else
                         {
@@ -189,15 +189,56 @@ static void HandleEvents(GameState* state)
                             modes = SDL_ListModes(NULL, SDL_FULLSCREEN);
                             SDL_FreeSurface(state->screen);
                             /* TEMP hardcoded to highest res */
-                            state->screen = SetVideoRes(modes[0]->w, modes[0]->h, SDL_FULLSCREEN);
+                            state->screen = SetVideoRes(modes[0]->w, modes[0]->h, SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS);
                         }
                         SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
                     break;
 
+                    /* TODO add alt + enter for fullscreen */
+
+
+                    /* debug inputs */
+                    /* unique to this game */
                     case SDLK_F5:
                         SetFlag(&state->statusFlags, STATUS_HOT_RELOAD);
                     break;
 
+                    /* NOTE these number inputs may conflict with ut debug mode inputs */
+                    /* TODO make these options in the settings rather than hardcoded keypresses */
+                    case SDLK_1:
+                        SetVideoRes(WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    case SDLK_2:
+                        SetVideoRes(WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    case SDLK_3:
+                        SetVideoRes(WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    case SDLK_4:
+                        SetVideoRes(WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    case SDLK_5:
+                        SetVideoRes(WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    case SDLK_6:
+                        SetVideoRes(WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, DEFAULT_VIDEO_FLAGS);
+                        SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+                    break;
+
+                    /* TODO add UT debug mode inputs */
+
+
+                    /* control inputs */
                     case SDLK_DOWN:
                         SetFlag(&state->vPad, VKEY_DOWN);
                     break;
@@ -265,11 +306,13 @@ static SDL_Surface* SetVideoRes(int width, int height, Uint32 flags)
 {
     if (!flags)
     {
-        flags = SDL_SWSURFACE|SDL_RESIZABLE|SDL_ANYFORMAT;
-        printf("SetVideoRes: No flags specified, using defaults\n");
+        printf("WARNING: SetVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
+        flags = DEFAULT_VIDEO_FLAGS;
     }
     printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
-    return SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
+    SDL_Surface* screen = SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
+    SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */
+    return screen;
 }
 
 static int DrawVScreenScaled(GameState* state)

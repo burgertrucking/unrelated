@@ -14,7 +14,7 @@ typedef struct Player {
 } Player;
 
 int InitPlayer(Player* p);
-void UpdatePlayer(Player* p, Uint8 vPad);
+void UpdatePlayer(Player* p, Uint32 vPad);
 int DrawPlayer(Player* p, SDL_Surface* screen);
 
 #endif /* PLAYER_H */
@@ -60,7 +60,7 @@ int InitPlayer(Player* p)
     return 0;
 }
 
-void UpdatePlayer(Player* p, Uint8 vPad)
+void UpdatePlayer(Player* p, Uint32 vPad)
 {
     SDL_bool isRunning = CheckFlag(vPad, VKEY_CANCEL);
     int moveSpeed = isRunning? PLAYER_RUN_SPEED : PLAYER_WALK_SPEED;

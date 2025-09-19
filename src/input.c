@@ -15,8 +15,8 @@ typedef enum InputButton
     VKEY_MENU = 1 << 6,
 } InputButton;
 
-void PressVInput(Uint8* vPad, InputButton b);
-void UnpressVInput(Uint8* vPad, InputButton b);
+void PressVInput(Uint32* vPad, InputButton b);
+void UnpressVInput(Uint32* vPad, InputButton b);
 
 #endif /* INPUT_H */
 
@@ -25,14 +25,14 @@ void UnpressVInput(Uint8* vPad, InputButton b);
 
 #include "bitflag.c"
 
-void PressVInput(Uint8* vPad, InputButton b)
+void PressVInput(Uint32* vPad, InputButton b)
 {
-    SetFlag(vPad, (Uint8)b);
+    SetFlag(vPad, (Uint32)b);
 }
 
-void UnpressVInput(Uint8* vPad, InputButton b)
+void UnpressVInput(Uint32* vPad, InputButton b)
 {
-    ClearFlag(vPad, (Uint8)b);
+    ClearFlag(vPad, (Uint32)b);
 }
 
 #endif /* INPUT_C */

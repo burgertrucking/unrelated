@@ -3,6 +3,7 @@
 #define GAME_H
 
 #include "SDL.h"
+#include "SDL_video.h"
 #include "input.c"
 #include "player.c"
 #include "statusflag.h"
@@ -17,6 +18,8 @@ enum
     SCREEN_BPP = 0, /* native colour depth */
     TICKS_PER_SECOND = 30,
     DEFAULT_VIDEO_FLAGS = SDL_SWSURFACE|SDL_ANYFORMAT, /* NOTE may eventually let machine decide hw vs sw rather than hardcoding */
+    WINDOW_RESIZABLE = SDL_RESIZABLE|DEFAULT_VIDEO_FLAGS,
+    WINDOW_FULLSCREEN = SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS,
 };
 
 typedef struct GameState
@@ -68,7 +71,7 @@ int InitGame(GameState* state)
 {
     int err = 0;
 
-	SetVideoRes(state, RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+	SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
 	if (!state->screen) return 1; /* STUB */
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
@@ -157,12 +160,10 @@ static void HandleEvents(GameState* state)
                 SetFlag(&state->statusFlags, STATUS_QUIT);
             break;
 
-            /* TEMP video resizing is disabled for now
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
-                SetVideoRes(state, re.w, re.h, DEFAULT_VIDEO_FLAGS);
-            */
+                SetVideoRes(state, re.w, re.h, WINDOW_RESIZABLE);
             break;
 
             case SDL_KEYDOWN:
@@ -179,14 +180,14 @@ static void HandleEvents(GameState* state)
                         {
                             ClearFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             /* TODO save previous non-fullscreen scale instead of hardcoding to 2x */
-                            SetVideoRes(state, RES_WIDTH, RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+                            SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
                         }
                         else
                         {
                             SetFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             modes = SDL_ListModes(NULL, SDL_FULLSCREEN);
                             /* TEMP hardcoded to highest res */
-                            SetVideoRes(state, modes[0]->w, modes[0]->h, SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS);
+                            SetVideoRes(state, modes[0]->w, modes[0]->h, WINDOW_FULLSCREEN);
                         }
                         SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
                     break;
@@ -203,27 +204,39 @@ static void HandleEvents(GameState* state)
                     /* NOTE these number inputs may conflict with ut debug mode inputs */
                     /* TODO make these options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
-                        SetVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_2:
-                        SetVideoRes(state, WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_3:
-                        SetVideoRes(state, WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_4:
-                        SetVideoRes(state, WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_5:
-                        SetVideoRes(state, WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_6:
-                        SetVideoRes(state, WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, DEFAULT_VIDEO_FLAGS);
+                        SetVideoRes(state, WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, WINDOW_RESIZABLE);
+                    break;
+
+                    case SDLK_7:
+                        SetVideoRes(state, WORLD_RES_WIDTH*7, WORLD_RES_HEIGHT*7, WINDOW_RESIZABLE);
+                    break;
+
+                    case SDLK_8:
+                        SetVideoRes(state, WORLD_RES_WIDTH*8, WORLD_RES_HEIGHT*8, WINDOW_RESIZABLE);
+                    break;
+
+                    case SDLK_9:
+                        SetVideoRes(state, WORLD_RES_WIDTH*9, WORLD_RES_HEIGHT*9, WINDOW_RESIZABLE);
                     break;
 
                     /* TODO add UT debug mode inputs */
@@ -308,10 +321,9 @@ static void SetVideoRes(GameState* state, int width, int height, Uint32 flags)
 
 static int DrawVScreenScaled(GameState* state)
 {
-    /* FIXME seems to fail when changing aspect ratios sometimes (eg 5:4 to 4:3) */
     /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
-    /* (right now this is worked around by making the available window sizes only integer scales) */
-    /* currently letterboxes */
+    /* right now this is worked around by having number keys integer scale that amount (based on world res) */
+    /* scaling currently only letterboxes */
     static int x, y;
     static float scale;
     static SDL_bool landscape, resized = SDL_TRUE;
@@ -322,16 +334,21 @@ static int DrawVScreenScaled(GameState* state)
     }
     if (resized)
     {
+         /* if screen aspect ratio is >= 4:3, it's considered landscape */
         landscape = state->screen->w >= state->screen->h*4.0f/3.0f;
         if (landscape)
         {
+            /* scale based on height */
             scale = (float)state->screen->h / RES_HEIGHT;
             x = (state->screen->w - RES_WIDTH*scale)/2.0f;
+            y = 0;
         }
         else
         {
+            /* scale based on width */
             scale = (float)state->screen->w / RES_WIDTH;
             y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
+            x = 0;
         }
         resized = SDL_FALSE;
     }

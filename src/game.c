@@ -3,7 +3,6 @@
 #define GAME_H
 
 #include "SDL.h"
-#include "SDL_video.h"
 #include "input.c"
 #include "player.c"
 #include "statusflag.h"
@@ -61,7 +60,7 @@ static int UpdateGame(GameState* state);
 static int DrawGame(GameState* state);
 static void HandleEvents(GameState* state);
 /* calls SDL_SetVideoMode() with a given width and height, and sets relevant state info accordingly */
-static void SetVideoRes(GameState* state, int width, int height, Uint32 flags);
+static int SetVideoRes(GameState* state, int width, int height, Uint32 flags);
 static int DrawVScreenScaled(GameState* state);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
@@ -69,10 +68,8 @@ static int DrawVScreenScaled(GameState* state);
 #endif
 int InitGame(GameState* state)
 {
-    int err = 0;
-
-	SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
-	if (!state->screen) return 1; /* STUB */
+    int err = SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
+	if (err) return err;
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
 	SDL_PixelFormat pf = *state->screen->format;
@@ -119,6 +116,7 @@ int UpdateDrawFrame(GameState* state)
 
 static int UpdateGame(GameState* state)
 {
+    /* TODO set up errors for update functions and propagate them */
     int err = 0;
 
     HandleEvents(state);
@@ -306,7 +304,7 @@ static void HandleEvents(GameState* state)
     }
 }
 
-static void SetVideoRes(GameState* state, int width, int height, Uint32 flags)
+static int SetVideoRes(GameState* state, int width, int height, Uint32 flags)
 {
     if (!flags)
     {
@@ -315,8 +313,11 @@ static void SetVideoRes(GameState* state, int width, int height, Uint32 flags)
     }
     printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
     state->screen = SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
+    if (!state->screen) return 1;
     SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */
+    SDL_ShowCursor(0);
     SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+    return 0;
 }
 
 static int DrawVScreenScaled(GameState* state)

@@ -199,8 +199,12 @@ static void HandleEvents(GameState* state)
                         SetFlag(&state->statusFlags, STATUS_HOT_RELOAD);
                     break;
 
-                    /* NOTE these number inputs may conflict with ut debug mode inputs */
-                    /* TODO make these options in the settings rather than hardcoded keypresses */
+                    /* NOTE these inputs may conflict with ut debug mode inputs */
+                    case SDLK_d:
+                        state->player.isDarkWorld = !state->player.isDarkWorld;
+                        printf("DEBUG STUB switching player form: dw == %i\n", state->player.isDarkWorld);
+                    break;
+                    /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
                         SetVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, WINDOW_RESIZABLE);
                     break;

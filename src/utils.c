@@ -3,7 +3,6 @@
 #define UTILS_H
 
 #include "SDL.h"
-#include "SDL_video.h"
 
 /* Load a png image and save it to an SDL_Surface with the same format as the screen */
 SDL_Surface* LoadImage(const char* file);

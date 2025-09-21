@@ -3,7 +3,6 @@
 #define PLAYER_H
 
 #include "SDL.h"
-#include "SDL_stdinc.h"
 
 typedef struct Player {
 	/* NOTE consider combining these into one big spreadsheet */

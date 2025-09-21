@@ -12,7 +12,7 @@
 	#include "game.c"
 #endif /* ENABLE_HOT_RELOADING */
 
-int LogError(int err, const char* callerFn);
+int logError(int err, const char* callerFn);
 
 /* TODO figure out sdl_main to circumvent the need for this */
 int main(int argc, char* argv[]) 
@@ -27,21 +27,21 @@ int main(int argc, char* argv[])
 
 	/* init */
 	err = SDL_Init(SDL_INIT_EVERYTHING);
-	if (err) return LogError(err, "SDL_Init in main");
+	if (err) return logError(err, "SDL_Init in main");
 	GameState state;
 	#ifdef ENABLE_HOT_RELOADING
 		err = gameDll.InitGame(&state);
 	#else
 		err = InitGame(&state);
 	#endif
-	if (err) LogError(err, "InitGame");
+	if (err) logError(err, "InitGame");
 
 	/* update + draw */
 	while (!CheckFlag(state.statusFlags, STATUS_QUIT))
 	{
 		#ifdef ENABLE_HOT_RELOADING
 			err = gameDll.UpdateDrawFrame(&state);
-			if (err) LogError(err, "UpdateDrawFrame");
+			if (err) logError(err, "UpdateDrawFrame");
 			if (CheckFlag(state.statusFlags, STATUS_HOT_RELOAD))
 			{
 				HandleHotReload(); /* this function logs errors, no need to propagate its return value */
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	return err;
 }
 
-int LogError(int err, const char* callerFn)
+int logError(int err, const char* callerFn)
 {
 	fprintf(stderr, "WARNING: %s returned error: `%s`\n", callerFn, SDL_GetError());
 	return err;

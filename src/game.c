@@ -47,7 +47,6 @@ int UpdateDrawFrame(GameState* state);
 /* implementation */
 #ifdef GAME_STANDALONE /* should be defined when building game.c as a dll */
 
-#include "SDL.h"
 #include "all.c"
 
 /* anonymous enum for constants (private to module) */
@@ -56,19 +55,19 @@ enum
     TICK_RATE = 1000 / TICKS_PER_SECOND,
 };
 
-static int UpdateGame(GameState* state);
-static int DrawGame(GameState* state);
-static void HandleEvents(GameState* state);
+static int updateGame(GameState* state);
+static int drawGame(GameState* state);
+static void handleEvents(GameState* state);
 /* calls SDL_SetVideoMode() with a given width and height, and sets relevant state info accordingly */
-static int SetVideoRes(GameState* state, int width, int height, Uint32 flags);
-static int DrawVScreenScaled(GameState* state);
+static int setVideoRes(GameState* state, int width, int height, Uint32 flags);
+static int drawVScreenScaled(GameState* state);
 
 #if defined(_WIN32) && defined(ENABLE_HOT_RELOADING)
     __declspec(dllexport)
 #endif
 int InitGame(GameState* state)
 {
-    int err = SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
+    int err = setVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
 	if (err) return err;
 	SDL_WM_SetCaption("UNRELATED", NULL);
     /* pixel format for current monitor, used for creating game's virtual screens */
@@ -94,10 +93,10 @@ int UpdateDrawFrame(GameState* state)
     int err = 0;
 
     /* Update */
-    err = UpdateGame(state);
+    err = updateGame(state);
 
     /* Draw */
-    err = DrawGame(state);
+    err = drawGame(state);
 
     /* Clear non-persistent flags */
     ClearFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
@@ -114,19 +113,19 @@ int UpdateDrawFrame(GameState* state)
     return err;
 }
 
-static int UpdateGame(GameState* state)
+static int updateGame(GameState* state)
 {
     /* TODO set up errors for update functions and propagate them */
     int err = 0;
 
-    HandleEvents(state);
+    handleEvents(state);
 
     UpdatePlayer(&state->player, state->vPad);
 
     return err;
 }
 
-static int DrawGame(GameState* state)
+static int drawGame(GameState* state)
 {
     int err = 0;
 
@@ -142,13 +141,13 @@ static int DrawGame(GameState* state)
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
     err = SDL_FillRect(state->screen, NULL, 0);
-    err = DrawVScreenScaled(state);
+    err = drawVScreenScaled(state);
 
     SDL_Flip(state->screen);
     return err;
 }
 
-static void HandleEvents(GameState* state)
+static void handleEvents(GameState* state)
 {
     while (SDL_PollEvent(&state->event))
     {
@@ -161,7 +160,7 @@ static void HandleEvents(GameState* state)
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
-                SetVideoRes(state, re.w, re.h, WINDOW_RESIZABLE);
+                setVideoRes(state, re.w, re.h, WINDOW_RESIZABLE);
             break;
 
             case SDL_KEYDOWN:
@@ -178,14 +177,14 @@ static void HandleEvents(GameState* state)
                         {
                             ClearFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             /* TODO save previous non-fullscreen scale instead of hardcoding to 2x */
-                            SetVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
+                            setVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
                         }
                         else
                         {
                             SetFlag(&state->statusFlags, STATUS_FULLSCREEN);
                             modes = SDL_ListModes(NULL, SDL_FULLSCREEN);
                             /* TEMP hardcoded to highest res */
-                            SetVideoRes(state, modes[0]->w, modes[0]->h, WINDOW_FULLSCREEN);
+                            setVideoRes(state, modes[0]->w, modes[0]->h, WINDOW_FULLSCREEN);
                         }
                         SetFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
                     break;
@@ -206,39 +205,39 @@ static void HandleEvents(GameState* state)
                     break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
-                        SetVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_2:
-                        SetVideoRes(state, WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*2, WORLD_RES_HEIGHT*2, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_3:
-                        SetVideoRes(state, WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*3, WORLD_RES_HEIGHT*3, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_4:
-                        SetVideoRes(state, WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*4, WORLD_RES_HEIGHT*4, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_5:
-                        SetVideoRes(state, WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*5, WORLD_RES_HEIGHT*5, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_6:
-                        SetVideoRes(state, WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*6, WORLD_RES_HEIGHT*6, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_7:
-                        SetVideoRes(state, WORLD_RES_WIDTH*7, WORLD_RES_HEIGHT*7, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*7, WORLD_RES_HEIGHT*7, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_8:
-                        SetVideoRes(state, WORLD_RES_WIDTH*8, WORLD_RES_HEIGHT*8, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*8, WORLD_RES_HEIGHT*8, WINDOW_RESIZABLE);
                     break;
 
                     case SDLK_9:
-                        SetVideoRes(state, WORLD_RES_WIDTH*9, WORLD_RES_HEIGHT*9, WINDOW_RESIZABLE);
+                        setVideoRes(state, WORLD_RES_WIDTH*9, WORLD_RES_HEIGHT*9, WINDOW_RESIZABLE);
                     break;
 
                     /* TODO add UT debug mode inputs */
@@ -308,7 +307,7 @@ static void HandleEvents(GameState* state)
     }
 }
 
-static int SetVideoRes(GameState* state, int width, int height, Uint32 flags)
+static int setVideoRes(GameState* state, int width, int height, Uint32 flags)
 {
     if (!flags)
     {
@@ -324,7 +323,7 @@ static int SetVideoRes(GameState* state, int width, int height, Uint32 flags)
     return 0;
 }
 
-static int DrawVScreenScaled(GameState* state)
+static int drawVScreenScaled(GameState* state)
 {
     /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
     /* right now this is worked around by having number keys integer scale that amount (based on world res) */

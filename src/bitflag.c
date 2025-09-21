@@ -23,8 +23,6 @@ SDL_bool CheckFlag(Uint32 flags, Uint32 val);
 /* implementation */
 #ifdef BITFLAG_C
 
-#include "SDL.h"
-
 void SetFlag(Uint32* flags, Uint32 val)
 {
     *flags |= val;

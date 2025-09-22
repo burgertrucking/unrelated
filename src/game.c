@@ -160,7 +160,9 @@ static void handleEvents(GameState* state)
             SDL_ResizeEvent re;
             case SDL_VIDEORESIZE:
                 re = state->event.resize;
-                setVideoRes(state, re.w, re.h, WINDOW_RESIZABLE);
+                /* ignore resize events to the current res (prevents fullscreening from undoing itself) */
+                if (state->screen->w != re.w && state->screen->h != re.h)
+                    setVideoRes(state, re.w, re.h, WINDOW_RESIZABLE);
             break;
 
             case SDL_KEYDOWN:
@@ -168,6 +170,7 @@ static void handleEvents(GameState* state)
                 {
                     /* windowing inputs */
                     case SDLK_ESCAPE:
+                        /* TODO require holding for 1-2 seconds to quit */
                         SetFlag(&state->statusFlags, STATUS_QUIT);
                     break;
 
@@ -314,7 +317,7 @@ static int setVideoRes(GameState* state, int width, int height, Uint32 flags)
         fprintf(stderr, "WARNING: SetVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
         flags = DEFAULT_VIDEO_FLAGS;
     }
-    printf("SetVideoRes: Changing screen resolution to %d x %d\n", width, height);
+    printf("setVideoRes: Changing screen resolution to %d x %d\n", width, height);
     state->screen = SDL_SetVideoMode(width, height, SCREEN_BPP, flags);
     if (!state->screen) return 1;
     SDL_WM_GrabInput(SDL_GRAB_OFF); /* prevent sdl12-compat default behaviour of capturing mouse input */

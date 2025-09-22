@@ -8,7 +8,7 @@
 SDL_Surface* LoadImage(const char* file);
 /* Convenience wrapper for blitting a surface at a given point */
 int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int x, int y);
-/* Scale a surface then blit it */
+/* Scale a surface then blit it. Does not alpha blend */
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int x, int y, float scaleX, float scaleY);
 
 #endif
@@ -35,7 +35,7 @@ int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, int x, int y, float scaleX, float scaleY)
 {
     SDL_Rect dims;
-    dims = srcRect? *srcRect : src->clip_rect;
+    dims = (srcRect)? *srcRect : src->clip_rect;
     Uint16 w = dims.w*scaleX, h = dims.h*scaleY;
     /* TEMP dimension validation: will force an incorrect but working stretch if invalid */
     if ((x + w) > dst->w)

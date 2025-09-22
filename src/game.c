@@ -204,7 +204,6 @@ static void handleEvents(GameState* state)
                     /* NOTE these inputs may conflict with ut debug mode inputs */
                     case SDLK_d:
                         state->player.isDarkWorld = !state->player.isDarkWorld;
-                        printf("DEBUG STUB switching player form: dw == %i\n", state->player.isDarkWorld);
                     break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
@@ -314,7 +313,7 @@ static int setVideoRes(GameState* state, int width, int height, Uint32 flags)
 {
     if (!flags)
     {
-        fprintf(stderr, "WARNING: SetVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
+        fprintf(stderr, "WARNING: setVideoRes: No flags specified, using DEFAULT_VIDEO_FLAGS as fallback\n");
         flags = DEFAULT_VIDEO_FLAGS;
     }
     printf("setVideoRes: Changing screen resolution to %d x %d\n", width, height);

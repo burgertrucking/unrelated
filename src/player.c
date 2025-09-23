@@ -81,7 +81,8 @@ int InitPlayer(Player* p)
 void UpdatePlayer(Player* p, Uint32 vPad)
 {
     /* handle inputs */
-    p->isRunning = CheckFlag(vPad, VKEY_CANCEL);
+    /* TODO make alias checking less verbose */
+    p->isRunning = (CheckFlag(vPad, VKEY_CANCEL) || CheckFlag(vPad, VKEY_CANCEL_A) || CheckFlag(vPad, VKEY_CANCEL_B));
     int moveSpeed;
     if (p->isRunning)
     {
@@ -91,10 +92,10 @@ void UpdatePlayer(Player* p, Uint32 vPad)
     }
     else moveSpeed = (p->isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
     int xDir = 0, yDir = 0;
-    if (CheckFlag(vPad, VKEY_DOWN)) yDir = 1;
-    if (CheckFlag(vPad, VKEY_UP)) yDir = -1;
-    if (CheckFlag(vPad, VKEY_RIGHT)) xDir = 1;
-    if (CheckFlag(vPad, VKEY_LEFT)) xDir = -1;
+    if (CheckFlag(vPad, VKEY_DOWN) || CheckFlag(vPad, VKEY_DOWN_A) || CheckFlag(vPad, VKEY_DOWN_B)) yDir = 1;
+    if (CheckFlag(vPad, VKEY_UP) || CheckFlag(vPad, VKEY_UP_A) || CheckFlag(vPad, VKEY_UP_B)) yDir = -1;
+    if (CheckFlag(vPad, VKEY_RIGHT) || CheckFlag(vPad, VKEY_RIGHT_A) || CheckFlag(vPad, VKEY_RIGHT_B)) xDir = 1;
+    if (CheckFlag(vPad, VKEY_LEFT) || CheckFlag(vPad, VKEY_LEFT_A) || CheckFlag(vPad, VKEY_LEFT_B)) xDir = -1;
 
     /* handle movement */
     SDL_bool isMoving = (xDir != 0 || yDir != 0)? SDL_TRUE : SDL_FALSE;

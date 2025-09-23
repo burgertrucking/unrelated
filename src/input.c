@@ -13,8 +13,56 @@ typedef enum InputButton
     VKEY_ACCEPT = 1 << 4,
     VKEY_CANCEL = 1 << 5,
     VKEY_MENU = 1 << 6,
+
+    /* Each button gets two extra aliases (eg. Enter, Shift, Control) like in the original.
+    Unlike the original, so do the movement keys. */
+    VKEY_UP_A = 1 << 7,
+    VKEY_DOWN_A = 1 << 8,
+    VKEY_LEFT_A = 1 << 9,
+    VKEY_RIGHT_A = 1 << 10,
+    VKEY_ACCEPT_A = 1 << 11,
+    VKEY_CANCEL_A = 1 << 12,
+    VKEY_MENU_A = 1 << 13,
+
+    VKEY_UP_B = 1 << 14,
+    VKEY_DOWN_B = 1 << 15,
+    VKEY_LEFT_B = 1 << 16,
+    VKEY_RIGHT_B = 1 << 17,
+    VKEY_ACCEPT_B = 1 << 18,
+    VKEY_CANCEL_B = 1 << 19,
+    VKEY_MENU_B = 1 << 20,
 } InputButton;
 
+typedef struct KeyBinds
+{
+    SDLKey up;
+    SDLKey down;
+    SDLKey left;
+    SDLKey right;
+    SDLKey accept;
+    SDLKey cancel;
+    SDLKey menu;
+
+    SDLKey upA;
+    SDLKey downA;
+    SDLKey leftA;
+    SDLKey rightA;
+    SDLKey acceptA;
+    SDLKey cancelA;
+    SDLKey menuA;
+
+    SDLKey upB;
+    SDLKey downB;
+    SDLKey leftB;
+    SDLKey rightB;
+    SDLKey acceptB;
+    SDLKey cancelB;
+    SDLKey menuB;
+} KeyBinds;
+
+/* TODO controller bindings */
+
+KeyBinds GetDefaultKeyBinds(void);
 void PressVInput(Uint32* vPad, InputButton b);
 void UnpressVInput(Uint32* vPad, InputButton b);
 
@@ -24,6 +72,15 @@ void UnpressVInput(Uint32* vPad, InputButton b);
 #ifdef INPUT_C
 
 #include "bitflag.c"
+
+KeyBinds GetDefaultKeyBinds(void)
+{
+    return (KeyBinds){
+        .up = SDLK_UP, .down = SDLK_DOWN, .left = SDLK_LEFT, .right = SDLK_RIGHT, .accept = SDLK_z, .cancel = SDLK_x, .menu = SDLK_c,
+        .upA = SDLK_w, .downA = SDLK_s, .leftA = SDLK_a, .rightA = SDLK_d, .acceptA = SDLK_RETURN, .cancelA = SDLK_RSHIFT, .menuA = SDLK_RCTRL,
+        .upB = SDLK_i, .downB = SDLK_k, .leftB = SDLK_j, .rightB = SDLK_l, .acceptB = SDLK_KP_ENTER, .cancelB = SDLK_LSHIFT, .menuB = SDLK_LCTRL,
+    };
+}
 
 void PressVInput(Uint32* vPad, InputButton b)
 {

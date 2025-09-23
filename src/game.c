@@ -21,8 +21,14 @@ enum
     WINDOW_FULLSCREEN = SDL_FULLSCREEN|DEFAULT_VIDEO_FLAGS,
 };
 
+typedef struct UserConfig
+{
+    KeyBinds keys;
+} UserConfig;
+
 typedef struct GameState
 {
+    UserConfig cfg;
     Player player;
     SDL_Surface* screen; /* framebuffer surface */
     SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
@@ -53,7 +59,10 @@ int UpdateDrawFrame(GameState* state);
 enum
 {
     TICK_RATE = 1000 / TICKS_PER_SECOND,
+    QUIT_TIMER_DURATION = 1*TICKS_PER_SECOND,
 };
+
+static int quitTimer;
 
 static int updateGame(GameState* state);
 static int drawGame(GameState* state);
@@ -67,6 +76,10 @@ static int drawVScreenScaled(GameState* state);
 #endif
 int InitGame(GameState* state)
 {
+    /* TODO load player config */
+    state->cfg.keys = GetDefaultKeyBinds();
+    quitTimer = 0;
+
     int err = setVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
 	if (err) return err;
 	SDL_WM_SetCaption("UNRELATED", NULL);
@@ -122,6 +135,12 @@ static int updateGame(GameState* state)
 
     UpdatePlayer(&state->player, state->vPad);
 
+    if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
+    {
+        if (quitTimer >= QUIT_TIMER_DURATION) SetFlag(&state->statusFlags, STATUS_QUIT);
+        else ++quitTimer;
+    }
+
     return err;
 }
 
@@ -170,8 +189,8 @@ static void handleEvents(GameState* state)
                 {
                     /* windowing inputs */
                     case SDLK_ESCAPE:
-                        /* TODO require holding for 1-2 seconds to quit */
-                        SetFlag(&state->statusFlags, STATUS_QUIT);
+                        printf("handleEvents: requesting game quit, hold esc for %i second(s)\n", QUIT_TIMER_DURATION/TICKS_PER_SECOND);
+                        SetFlag(&state->statusFlags, STATUS_QUIT_KEY_HELD);
                     break;
 
                     SDL_Rect** modes;
@@ -202,8 +221,16 @@ static void handleEvents(GameState* state)
                     break;
 
                     /* NOTE these inputs may conflict with ut debug mode inputs */
-                    case SDLK_d:
+                    case SDLK_g:
                         state->player.isDarkWorld = !state->player.isDarkWorld;
+                    break;
+                    case SDLK_h:
+                        /* TEMP rebinding esdf to wasd to test key rebinding */
+                        printf("handleEvents: changing WASD to ESDF\n");
+                        state->cfg.keys.upA = SDLK_e;
+                        state->cfg.keys.leftA = SDLK_s;
+                        state->cfg.keys.downA = SDLK_d;
+                        state->cfg.keys.rightA = SDLK_f;
                     break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
@@ -244,31 +271,6 @@ static void handleEvents(GameState* state)
 
                     /* TODO add UT debug mode inputs */
 
-
-                    /* control inputs */
-                    case SDLK_DOWN:
-                        SetFlag(&state->vPad, VKEY_DOWN);
-                    break;
-
-                    case SDLK_UP:
-                        SetFlag(&state->vPad, VKEY_UP);
-                    break;
-
-                    case SDLK_LEFT:
-                        SetFlag(&state->vPad, VKEY_LEFT);
-                    break;
-
-                    case SDLK_RIGHT:
-                        SetFlag(&state->vPad, VKEY_RIGHT);
-                    break;
-
-                    case SDLK_x:
-                    case SDLK_LSHIFT:
-                    case SDLK_RSHIFT:
-                        /* NOTE consider making key aliases so eg pressing shift while x is held still counts */
-                        SetFlag(&state->vPad, VKEY_CANCEL);
-                    break;
-
                     default:
                     break;
                 }
@@ -277,34 +279,71 @@ static void handleEvents(GameState* state)
             case SDL_KEYUP:
                 switch (state->event.key.keysym.sym)
                 {
-                    case SDLK_DOWN:
-                        ClearFlag(&state->vPad, VKEY_DOWN);
-                    break;
-
-                    case SDLK_UP:
-                        ClearFlag(&state->vPad, VKEY_UP);
-                    break;
-
-                    case SDLK_LEFT:
-                        ClearFlag(&state->vPad, VKEY_LEFT);
-                    break;
-
-                    case SDLK_RIGHT:
-                        ClearFlag(&state->vPad, VKEY_RIGHT);
-                    break;
-
-                    /* FIXME releasing one of these aliased keys will count as a depress even if another alias is
-                    still held down */
-                    case SDLK_x:
-                    case SDLK_LSHIFT:
-                    case SDLK_RSHIFT:
-                        ClearFlag(&state->vPad, VKEY_CANCEL);
+                    case SDLK_ESCAPE:
+                        printf("handleEvents: esc released, game quit request cancelled\n");
+                        ClearFlag(&state->statusFlags, STATUS_QUIT_KEY_HELD);
+                        quitTimer = 0;
                     break;
 
                     default:
                     break;
                 }
             break;
+        }
+
+        /* handle player input (done here since switch statements must use compile time constants) */
+        SDLKey key = state->event.key.keysym.sym;
+        if (state->event.type == SDL_KEYDOWN)
+        {
+            if (key == state->cfg.keys.down) SetFlag(&state->vPad, VKEY_DOWN);
+            if (key == state->cfg.keys.up) SetFlag(&state->vPad, VKEY_UP);
+            if (key == state->cfg.keys.left) SetFlag(&state->vPad, VKEY_LEFT);
+            if (key == state->cfg.keys.right) SetFlag(&state->vPad, VKEY_RIGHT);
+            if (key == state->cfg.keys.accept) SetFlag(&state->vPad, VKEY_ACCEPT);
+            if (key == state->cfg.keys.cancel) SetFlag(&state->vPad, VKEY_CANCEL);
+            if (key == state->cfg.keys.menu) SetFlag(&state->vPad, VKEY_MENU);
+
+            if (key == state->cfg.keys.downA) SetFlag(&state->vPad, VKEY_DOWN_A);
+            if (key == state->cfg.keys.upA) SetFlag(&state->vPad, VKEY_UP_A);
+            if (key == state->cfg.keys.leftA) SetFlag(&state->vPad, VKEY_LEFT_A);
+            if (key == state->cfg.keys.rightA) SetFlag(&state->vPad, VKEY_RIGHT_A);
+            if (key == state->cfg.keys.acceptA) SetFlag(&state->vPad, VKEY_ACCEPT_A);
+            if (key == state->cfg.keys.cancelA) SetFlag(&state->vPad, VKEY_CANCEL_A);
+            if (key == state->cfg.keys.menuA) SetFlag(&state->vPad, VKEY_MENU_A);
+
+            if (key == state->cfg.keys.downB) SetFlag(&state->vPad, VKEY_DOWN_B);
+            if (key == state->cfg.keys.upB) SetFlag(&state->vPad, VKEY_UP_B);
+            if (key == state->cfg.keys.leftB) SetFlag(&state->vPad, VKEY_LEFT_B);
+            if (key == state->cfg.keys.rightB) SetFlag(&state->vPad, VKEY_RIGHT_B);
+            if (key == state->cfg.keys.acceptB) SetFlag(&state->vPad, VKEY_ACCEPT_B);
+            if (key == state->cfg.keys.cancelB) SetFlag(&state->vPad, VKEY_CANCEL_B);
+            if (key == state->cfg.keys.menuB) SetFlag(&state->vPad, VKEY_MENU_B);
+        }
+        else if (state->event.type == SDL_KEYUP)
+        {
+            if (key == state->cfg.keys.down) ClearFlag(&state->vPad, VKEY_DOWN);
+            if (key == state->cfg.keys.up) ClearFlag(&state->vPad, VKEY_UP);
+            if (key == state->cfg.keys.left) ClearFlag(&state->vPad, VKEY_LEFT);
+            if (key == state->cfg.keys.right) ClearFlag(&state->vPad, VKEY_RIGHT);
+            if (key == state->cfg.keys.accept) ClearFlag(&state->vPad, VKEY_ACCEPT);
+            if (key == state->cfg.keys.cancel) ClearFlag(&state->vPad, VKEY_CANCEL);
+            if (key == state->cfg.keys.menu) ClearFlag(&state->vPad, VKEY_MENU);
+
+            if (key == state->cfg.keys.downA) ClearFlag(&state->vPad, VKEY_DOWN_A);
+            if (key == state->cfg.keys.upA) ClearFlag(&state->vPad, VKEY_UP_A);
+            if (key == state->cfg.keys.leftA) ClearFlag(&state->vPad, VKEY_LEFT_A);
+            if (key == state->cfg.keys.rightA) ClearFlag(&state->vPad, VKEY_RIGHT_A);
+            if (key == state->cfg.keys.acceptA) ClearFlag(&state->vPad, VKEY_ACCEPT_A);
+            if (key == state->cfg.keys.cancelA) ClearFlag(&state->vPad, VKEY_CANCEL_A);
+            if (key == state->cfg.keys.menuA) ClearFlag(&state->vPad, VKEY_MENU_A);
+
+            if (key == state->cfg.keys.downB) ClearFlag(&state->vPad, VKEY_DOWN_B);
+            if (key == state->cfg.keys.upB) ClearFlag(&state->vPad, VKEY_UP_B);
+            if (key == state->cfg.keys.leftB) ClearFlag(&state->vPad, VKEY_LEFT_B);
+            if (key == state->cfg.keys.rightB) ClearFlag(&state->vPad, VKEY_RIGHT_B);
+            if (key == state->cfg.keys.acceptB) ClearFlag(&state->vPad, VKEY_ACCEPT_B);
+            if (key == state->cfg.keys.cancelB) ClearFlag(&state->vPad, VKEY_CANCEL_B);
+            if (key == state->cfg.keys.menuB) ClearFlag(&state->vPad, VKEY_MENU_B);
         }
     }
 }

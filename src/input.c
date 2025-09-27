@@ -35,29 +35,29 @@ typedef enum InputButton
 
 typedef struct KeyBinds
 {
-    SDLKey up;
-    SDLKey down;
-    SDLKey left;
-    SDLKey right;
-    SDLKey accept;
-    SDLKey cancel;
-    SDLKey menu;
+    Uint16 up;
+    Uint16 down;
+    Uint16 left;
+    Uint16 right;
+    Uint16 accept;
+    Uint16 cancel;
+    Uint16 menu;
 
-    SDLKey upA;
-    SDLKey downA;
-    SDLKey leftA;
-    SDLKey rightA;
-    SDLKey acceptA;
-    SDLKey cancelA;
-    SDLKey menuA;
+    Uint16 upA;
+    Uint16 downA;
+    Uint16 leftA;
+    Uint16 rightA;
+    Uint16 acceptA;
+    Uint16 cancelA;
+    Uint16 menuA;
 
-    SDLKey upB;
-    SDLKey downB;
-    SDLKey leftB;
-    SDLKey rightB;
-    SDLKey acceptB;
-    SDLKey cancelB;
-    SDLKey menuB;
+    Uint16 upB;
+    Uint16 downB;
+    Uint16 leftB;
+    Uint16 rightB;
+    Uint16 acceptB;
+    Uint16 cancelB;
+    Uint16 menuB;
 } KeyBinds;
 
 /* TODO controller bindings */

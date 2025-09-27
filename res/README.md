@@ -2,7 +2,7 @@ For copyright reasons, resources are split into categories, with each being stor
 
 * `deriv`: Derivative works of assets from the original games, such as music remixes.
 * `edit`: Minor edits of assets from the original games.
-* `rip`: Assets ripped directly from the original games. Currently a private repository so the files don't get taken down.
+* `rip`: Assets ripped directly from the original games. May have very minor edits, eg. cropping.
 
 The intent of such segregation is to clearly distinguish between material that is original and created by me, and material that is not.
 

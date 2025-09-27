@@ -5,7 +5,6 @@
 #include "SDL.h"
 
 typedef struct Player {
-	/* NOTE consider combining these into one big spreadsheet */
 	SDL_Surface* lwSprite;
 	SDL_Surface* dwSprite;
     float x;
@@ -62,7 +61,7 @@ enum
 int InitPlayer(Player* p)
 {
     p->lwSprite = LoadImage("res/edit/spr/mainchara-lw.png");
-    p->dwSprite = LoadImage("res/edit/spr/mainchara-dw.png");
+    p->dwSprite = LoadImage("res/rip/spr/mainchara-dw.png");
     if (!p->lwSprite || !p->dwSprite)
     {
         fprintf(stderr, "InitPlayer: Could not load sprites\n");

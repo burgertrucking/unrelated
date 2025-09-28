@@ -55,6 +55,7 @@ int UpdateDrawFrame(GameState* state);
 /* implementation */
 #ifdef GAME_STANDALONE /* should be defined when building game.c as a dll */
 
+#include <stdio.h>
 #include "all.c"
 
 /* anonymous enum for constants (private to module) */
@@ -64,6 +65,16 @@ enum
     QUIT_TIMER_DURATION = 1*TICKS_PER_SECOND,
 };
 
+typedef struct RenderInfo
+{
+    Uint32 start;
+    Uint32 end;
+    Uint32 renderTime;
+    Uint32 delay;
+    Uint32 fps;
+} RenderInfo;
+
+static RenderInfo rinfo;
 static int quitTimer;
 
 static int updateGame(GameState* state);
@@ -105,7 +116,7 @@ int InitGame(GameState* state)
 #endif
 int UpdateDrawFrame(GameState* state)
 {
-    Uint32 start = SDL_GetTicks();
+    rinfo.start = SDL_GetTicks();
     int err = 0;
 
     /* Update */
@@ -118,13 +129,11 @@ int UpdateDrawFrame(GameState* state)
     ClearFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
 
     /* Delay between frames (effective 30 FPS lock) */
-    Uint32 end = SDL_GetTicks();
-    Uint32 renderTime = end - start;
-    Uint32 delay = (renderTime < TICK_RATE)? TICK_RATE - renderTime : 0;
-    /* NOTE these make the game run a lot slower, consider adding ingame fps or frametime overlay */
-    /* printf("UpdateDrawFrame: time taken to update + render frame: %d ms\n", renderTime); */
-    if (!delay) printf("UpdateDrawFrame: running slower than %dfps, time taken is %d ms\n", TICKS_PER_SECOND, renderTime);
-    SDL_Delay(delay);
+    rinfo.end = SDL_GetTicks();
+    rinfo.renderTime = rinfo.end - rinfo.start;
+    rinfo.delay = (rinfo.renderTime < TICK_RATE)? TICK_RATE - rinfo.renderTime : 0;
+    rinfo.fps = 1000 / (rinfo.renderTime + rinfo.delay);
+    SDL_Delay(rinfo.delay);
 
     return err;
 }
@@ -160,9 +169,19 @@ static int drawGame(GameState* state)
     /* scale vscreen240 to size of vscreen480 */
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
     /* TEMP checking if text can be drawn */
-    const int textStartX = 21*2, textStartY = 170*2; /* start position for textboxes */
+    const int textStartX = 29*2, textStartY = 170*2; /* start position for textboxes */
     int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
-    err = DrawText(&state->fonts, state->vScreen480, font, textStartX, textStartY);
+    const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
+    err = DrawText(msg, &state->fonts, state->vScreen480, font, textStartX, textStartY);
+    /* TEMP draw fps */
+    /* TODO make this toggleable */
+    char frameTimeStr[64];
+    sprintf(frameTimeStr, "FPS: %u\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
+    err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
+    /* TEMP draw quitting if escape is held */
+    /* TODO add and use the quitting font, or just hardcode it as an image to draw */
+    if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
+        DrawText("QUITTING...", &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
@@ -196,7 +215,6 @@ static void handleEvents(GameState* state)
                 {
                     /* windowing inputs */
                     case SDLK_ESCAPE:
-                        printf("handleEvents: requesting game quit, hold esc for %i second(s)\n", QUIT_TIMER_DURATION/TICKS_PER_SECOND);
                         SetFlag(&state->statusFlags, STATUS_QUIT_KEY_HELD);
                     break;
 
@@ -287,7 +305,6 @@ static void handleEvents(GameState* state)
                 switch (state->event.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:
-                        printf("handleEvents: esc released, game quit request cancelled\n");
                         ClearFlag(&state->statusFlags, STATUS_QUIT_KEY_HELD);
                         quitTimer = 0;
                     break;

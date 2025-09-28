@@ -19,8 +19,8 @@ typedef enum FontType
 
 int InitFonts(Fonts* fonts);
 
-/* STUB currently draws a hardcoded message at the given position */
-int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y);
+/* Draw a message at a given position */
+int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y);
 
 #endif
 
@@ -57,7 +57,7 @@ int InitFonts(Fonts* fonts)
     return 0;
 }
 
-int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
+int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
 {
     SDL_Surface* f;
     switch (font)
@@ -76,22 +76,20 @@ int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
         break;
     }
 
-    /* TEMP draw a static message at the given location */
-    const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
+    const int startX = x - TEXT_CHAR_SPACING_DEFAULT;
     int i, charX, charY;
-    for (i = 0, charX = x, charY = y; msg[i] != '\0'; ++i)
+    for (i = 0, charX = startX, charY = y; msg[i] != '\0'; ++i)
     {
-        if (msg[i] == '\n')
-        {
-            printf("found newline at i == %i\n", i);
-            charX = x;
-            charY += TEXT_LINE_SPACING_DEFAULT;
-        }
-        else
+        if (msg[i] != '\n')
         {
             SDL_Rect srcrect = GetCharRect(msg[i]);
             charX += TEXT_CHAR_SPACING_DEFAULT;
             BlitSurfaceCoords(f, &srcrect, screen, charX, charY);
+        }
+        else
+        {
+            charX = startX;
+            charY += TEXT_LINE_SPACING_DEFAULT;
         }
     }
 

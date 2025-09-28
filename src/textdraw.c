@@ -30,6 +30,17 @@ int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y);
 #include <stdio.h>
 #include "utils.c"
 
+enum
+{
+    TEXT_CHAR_WIDTH = 17,
+    TEXT_CHAR_HEIGHT = 33,
+    FONT_IMG_ROWS = 9,
+    FONT_IMG_COLS = 30,
+};
+
+/* Calculate the rectangle that clips a given character from the bitmap font */
+static SDL_Rect GetCharRect(const char letter);
+
 int InitFonts(Fonts* fonts)
 {
     fonts->lwMain = LoadImage("res/rip/fnt/maintext-lw.png");
@@ -61,10 +72,18 @@ int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
         break;
     }
 
-    /* TEMP */
-    BlitSurfaceCoords(f, NULL, screen, x, y);
+    /* TEMP draw a single letter at the given location */
+    SDL_Rect srcrect = GetCharRect('F');
+    BlitSurfaceCoords(f, &srcrect, screen, x, y);
 
     return 0;
 };
+
+static SDL_Rect GetCharRect(const char letter)
+{
+    int col = letter%FONT_IMG_COLS;
+    int row = (letter - col)/FONT_IMG_COLS;
+    return (SDL_Rect){ col*TEXT_CHAR_WIDTH, row*TEXT_CHAR_HEIGHT, TEXT_CHAR_WIDTH, TEXT_CHAR_HEIGHT };
+}
 
 #endif

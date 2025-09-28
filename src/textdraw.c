@@ -19,7 +19,7 @@ typedef enum FontType
 
 int InitFonts(Fonts* fonts);
 
-/* STUB just draws the font image at the given position */
+/* STUB currently draws a hardcoded message at the given position */
 int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y);
 
 #endif
@@ -34,8 +34,12 @@ enum
 {
     TEXT_CHAR_WIDTH = 17,
     TEXT_CHAR_HEIGHT = 33,
+
     FONT_IMG_ROWS = 9,
     FONT_IMG_COLS = 30,
+
+    TEXT_CHAR_SPACING_DEFAULT = TEXT_CHAR_WIDTH - 1,
+    TEXT_LINE_SPACING_DEFAULT = TEXT_CHAR_HEIGHT + 3,
 };
 
 /* Calculate the rectangle that clips a given character from the bitmap font */
@@ -72,9 +76,24 @@ int DrawText(Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
         break;
     }
 
-    /* TEMP draw a single letter at the given location */
-    SDL_Rect srcrect = GetCharRect('F');
-    BlitSurfaceCoords(f, &srcrect, screen, x, y);
+    /* TEMP draw a static message at the given location */
+    const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
+    int i, charX, charY;
+    for (i = 0, charX = x, charY = y; msg[i] != '\0'; ++i)
+    {
+        if (msg[i] == '\n')
+        {
+            printf("found newline at i == %i\n", i);
+            charX = x;
+            charY += TEXT_LINE_SPACING_DEFAULT;
+        }
+        else
+        {
+            SDL_Rect srcrect = GetCharRect(msg[i]);
+            charX += TEXT_CHAR_SPACING_DEFAULT;
+            BlitSurfaceCoords(f, &srcrect, screen, charX, charY);
+        }
+    }
 
     return 0;
 };

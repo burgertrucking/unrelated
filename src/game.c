@@ -160,7 +160,9 @@ static int drawGame(GameState* state)
     /* scale vscreen240 to size of vscreen480 */
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
     /* TEMP checking if text can be drawn */
-    err = DrawText(&state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
+    const int textStartX = 21*2, textStartY = 170*2; /* start position for textboxes */
+    int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
+    err = DrawText(&state->fonts, state->vScreen480, font, textStartX, textStartY);
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */

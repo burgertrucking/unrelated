@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include "input.c"
 #include "player.c"
+#include "textdraw.c"
 #include "statusflag.h"
 
 /* anonymous enum for constants */
@@ -29,6 +30,7 @@ typedef struct UserConfig
 typedef struct GameState
 {
     UserConfig cfg;
+    Fonts fonts;
     Player player;
     SDL_Surface* screen; /* framebuffer surface */
     SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
@@ -92,6 +94,7 @@ int InitGame(GameState* state)
     state->statusFlags = 0; /* clear all flags */
     state->vPad = 0; /* clear all virtual pad inputs, prevents ghost inputs at startup */
 
+    err = InitFonts(&state->fonts);
     err = InitPlayer(&state->player);
 
     return err;
@@ -156,6 +159,8 @@ static int drawGame(GameState* state)
     /* vscreen480 (game) */
     /* scale vscreen240 to size of vscreen480 */
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
+    /* TEMP checking if text can be drawn */
+    err = DrawText(&state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */

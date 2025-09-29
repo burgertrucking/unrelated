@@ -61,7 +61,7 @@ int UpdateDrawFrame(GameState* state);
 /* anonymous enum for constants (private to module) */
 enum
 {
-    TICK_RATE = 1000 / TICKS_PER_SECOND,
+    TICK_RATE = 1000 / TICKS_PER_SECOND, /* NOTE rounding truncated because SDL_Delay() only takes integers */
     QUIT_TIMER_DURATION = 1*TICKS_PER_SECOND,
 };
 
@@ -71,7 +71,7 @@ typedef struct RenderInfo
     Uint32 end;
     Uint32 renderTime;
     Uint32 delay;
-    Uint32 fps;
+    float fps;
 } RenderInfo;
 
 static RenderInfo rinfo;
@@ -132,7 +132,7 @@ int UpdateDrawFrame(GameState* state)
     rinfo.end = SDL_GetTicks();
     rinfo.renderTime = rinfo.end - rinfo.start;
     rinfo.delay = (rinfo.renderTime < TICK_RATE)? TICK_RATE - rinfo.renderTime : 0;
-    rinfo.fps = 1000 / (rinfo.renderTime + rinfo.delay);
+    rinfo.fps = 1000.0f / (rinfo.renderTime + rinfo.delay);
     SDL_Delay(rinfo.delay);
 
     return err;
@@ -174,10 +174,10 @@ static int drawGame(GameState* state)
     const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
     err = DrawText(msg, &state->fonts, state->vScreen480, font, textStartX, textStartY);
     /* TEMP draw fps */
-    /* TODO make this toggleable */
     char frameTimeStr[64];
-    sprintf(frameTimeStr, "FPS: %u\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
-    err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
+    sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
+    if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
+        err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -246,6 +246,9 @@ static void handleEvents(GameState* state)
                     break;
 
                     /* NOTE these inputs may conflict with ut debug mode inputs */
+                    case SDLK_f: /* NOTE conflicts with esdf movement if g is pressed */
+                        ToggleFlag(&state->statusFlags, STATUS_DRAW_FPS);
+                    break;
                     case SDLK_g:
                         state->player.isDarkWorld = !state->player.isDarkWorld;
                     break;

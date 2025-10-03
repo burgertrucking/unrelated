@@ -3,12 +3,13 @@
 #define PLAYER_H
 
 #include "SDL.h"
+#include "types.h"
 
 typedef struct Player {
 	SDL_Surface* lwSprite;
 	SDL_Surface* dwSprite;
-    float x;
-    float y;
+	Rect bbox;
+	Vec2 pos;
     unsigned int runCount; /* counts frames moved for acceleration */
 	unsigned int stillCount; /* counts consecutive frames player stands still; used to play animations while tap moving (not exact to original) */
     unsigned int frameCount;
@@ -34,6 +35,20 @@ enum
     PLAYER_SPRITE_WIDTH = 19,
     PLAYER_SPRITE_HEIGHT = 38,
 
+/*
+	p.BBox = rl.NewRectangle(p.Pos.X, p.Pos.Y + PlayerBBoxYOffset, PlayerSpriteWidth, PlayerBBoxHeight)
+
+	PlayerSpriteWidth = 20
+	PlayerSpriteHeight = 31 // FIXME this is just for rendering, "actual" player height is 30
+	PlayerBBoxHeight = 14
+	PlayerBBoxYOffset = 18 - 1 // TEMP the -1 is because the sprite height is different than the original game
+*/
+	/* TEMP these are rough approximations */
+    PLAYER_BBOX_WIDTH = PLAYER_SPRITE_WIDTH,
+	PLAYER_BBOX_HEIGHT = 14,
+	PLAYER_BBOX_Y_OFFSET = 25, /* TEMP not sure if this is calculated right */
+
+	/* TODO change to down, right, up, left */
     PLAYER_FACE_DOWN = 0,
     PLAYER_FACE_LEFT,
     PLAYER_FACE_RIGHT,
@@ -69,8 +84,8 @@ int InitPlayer(Player* p)
     }
     p->animFrame = 0;
     p->facing = PLAYER_FACE_DOWN;
-    p->x = 0.0f;
-    p->y = 0.0f;
+    p->pos = (Vec2){0};
+    p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
     p->runCount = 0;
     p->isDarkWorld = SDL_FALSE;
 
@@ -99,8 +114,8 @@ void UpdatePlayer(Player* p, Uint32 vPad)
     /* handle movement */
     SDL_bool isMoving = (xDir != 0 || yDir != 0)? SDL_TRUE : SDL_FALSE;
     /* STUB collision calculations before moving would go here */
-    p->x += xDir*moveSpeed;
-    p->y += yDir*moveSpeed;
+    p->pos.x += xDir*moveSpeed;
+    p->pos.y += yDir*moveSpeed;
 
     /* handle turning */
 	switch (p->facing)
@@ -138,6 +153,11 @@ void UpdatePlayer(Player* p, Uint32 vPad)
 			}
 		break;
 	}
+
+	/* handle movement of bbox */
+	/* TEMP */
+    p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET,
+    				  PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
 
 	/* handle animations */
 	/* TODO turn some of these magic numbers into named constants */
@@ -177,7 +197,13 @@ int DrawPlayer(Player* p, SDL_Surface* screen)
     };
     /* TEMP this probably should not be reassigned each frame */
     SDL_Surface* sprite = (p->isDarkWorld)? p->dwSprite : p->lwSprite;
-    return BlitSurfaceCoords(sprite, &srcRect, screen, p->x, p->y);
+    int err = BlitSurfaceCoords(sprite, &srcRect, screen, p->pos.x, p->pos.y);
+
+    /* TEMP creating rectangle of bbox */
+    SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };
+    err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 40, 240, 60));
+
+    return err;
 }
 
 #endif /* PLAYER_C */

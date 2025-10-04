@@ -9,5 +9,6 @@ typedef enum StatusFlag
     STATUS_FULLSCREEN = 1 << 3,
     STATUS_QUIT_KEY_HELD = 1 << 4, /* holding escape but haven't elapsed timer yet */
     STATUS_DRAW_FPS = 1 << 5,
+    STATUS_DRAW_GIZMOS = 1 << 6, /* draws various debugging graphics akin to unity gizmos */
 } StatusFlag;
 #endif /* STATUSFLAG_H */

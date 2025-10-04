@@ -23,6 +23,8 @@ typedef struct Player {
 int InitPlayer(Player* p);
 void UpdatePlayer(Player* p, Uint32 vPad);
 int DrawPlayer(Player* p, SDL_Surface* screen);
+/* Should be drawn into vscreen240 */
+int DrawPlayerGizmos(Player* p, SDL_Surface* screen);
 
 #endif /* PLAYER_H */
 
@@ -198,11 +200,14 @@ int DrawPlayer(Player* p, SDL_Surface* screen)
     /* TEMP this probably should not be reassigned each frame */
     SDL_Surface* sprite = (p->isDarkWorld)? p->dwSprite : p->lwSprite;
     int err = BlitSurfaceCoords(sprite, &srcRect, screen, p->pos);
+    return err;
+}
 
+int DrawPlayerGizmos(Player* p, SDL_Surface* screen)
+{
     /* TEMP creating rectangle of bbox */
     SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };
-    err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 40, 240, 60));
-
+    int err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 40, 240, 60));
     return err;
 }
 

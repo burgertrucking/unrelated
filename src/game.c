@@ -147,6 +147,7 @@ static int updateGame(GameState* state)
 
     UpdatePlayer(&state->player, state->vPad);
 
+    /* update quit timer */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
     {
         if (quitTimer >= QUIT_TIMER_DURATION) SetFlag(&state->statusFlags, STATUS_QUIT);
@@ -158,12 +159,18 @@ static int updateGame(GameState* state)
 
 static int drawGame(GameState* state)
 {
+    /* TODO decompose into more granluar functions (eg drawing per screen, drawing gizmos) */
     int err = 0;
 
     /* vscreen240 (world) */
     /* draw a green background over the world screen */
     SDL_FillRect(state->vScreen240, NULL, SDL_MapRGB(state->vScreen240->format, 0, 180, 60));
     err = DrawPlayer(&state->player, state->vScreen240);
+    /* draw gizmos for vscreen240 */
+    if (CheckFlag(state->statusFlags, STATUS_DRAW_GIZMOS))
+    {
+        err = DrawPlayerGizmos(&state->player, state->vScreen240);
+    }
 
     /* vscreen480 (game) */
     /* scale vscreen240 to size of vscreen480 */
@@ -297,7 +304,10 @@ static void handleEvents(GameState* state)
                         setVideoRes(state, WORLD_RES_WIDTH*9, WORLD_RES_HEIGHT*9, WINDOW_RESIZABLE);
                     break;
 
-                    /* TODO add UT debug mode inputs */
+                    /* UT debug mode inputs */
+                    case SDLK_v:
+                        ToggleFlag(&state->statusFlags, STATUS_DRAW_GIZMOS);
+                    break;
 
                     default:
                     break;

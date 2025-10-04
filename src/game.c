@@ -167,21 +167,21 @@ static int drawGame(GameState* state)
 
     /* vscreen480 (game) */
     /* scale vscreen240 to size of vscreen480 */
-    err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, 0, 0, 2.0f, 2.0f);
+    err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, (Vec2){0}, (Vec2){2.0f, 2.0f});
     /* TEMP checking if text can be drawn */
-    const int textStartX = 29*2, textStartY = 170*2; /* start position for textboxes */
+    const Vec2 textStart = (Vec2){29*2, 170*2}; /* start position for textboxes */
     int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
     const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
-    err = DrawText(msg, &state->fonts, state->vScreen480, font, textStartX, textStartY);
+    err = DrawText(msg, &state->fonts, state->vScreen480, font, textStart);
     /* TEMP draw fps */
     char frameTimeStr[64];
     sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
     if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
-        err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
+        err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
-        DrawText("QUITTING...", &state->fonts, state->vScreen480, FONT_MAIN_DW, 0, 0);
+        DrawText("QUITTING...", &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
@@ -396,7 +396,7 @@ static int drawVScreenScaled(GameState* state)
     /* TODO add option for scaling the game screen to be nearest neighbour scaled to the centre of the window */
     /* right now this is worked around by having number keys integer scale that amount (based on world res) */
     /* scaling currently only letterboxes */
-    static int x, y;
+    static Vec2 pos;
     static float scale;
     static SDL_bool landscape, resized = SDL_TRUE;
     if (CheckFlag(state->statusFlags, STATUS_WINDOW_RESIZED))
@@ -412,19 +412,19 @@ static int drawVScreenScaled(GameState* state)
         {
             /* scale based on height */
             scale = (float)state->screen->h / RES_HEIGHT;
-            x = (state->screen->w - RES_WIDTH*scale)/2.0f;
-            y = 0;
+            pos.x = (state->screen->w - RES_WIDTH*scale)/2.0f;
+            pos.y = 0;
         }
         else
         {
             /* scale based on width */
             scale = (float)state->screen->w / RES_WIDTH;
-            y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
-            x = 0;
+            pos.y = (state->screen->h - RES_HEIGHT*scale)/2.0f;
+            pos.x = 0;
         }
         resized = SDL_FALSE;
     }
-    return BlitSurfaceScaled(state->vScreen480, NULL, state->screen, x, y, scale, scale);
+    return BlitSurfaceScaled(state->vScreen480, NULL, state->screen, pos, (Vec2){scale, scale});
 }
 
 #endif /* GAME_STANDALONE */

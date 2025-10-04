@@ -197,7 +197,7 @@ int DrawPlayer(Player* p, SDL_Surface* screen)
     };
     /* TEMP this probably should not be reassigned each frame */
     SDL_Surface* sprite = (p->isDarkWorld)? p->dwSprite : p->lwSprite;
-    int err = BlitSurfaceCoords(sprite, &srcRect, screen, p->pos.x, p->pos.y);
+    int err = BlitSurfaceCoords(sprite, &srcRect, screen, p->pos);
 
     /* TEMP creating rectangle of bbox */
     SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };

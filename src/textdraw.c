@@ -3,6 +3,7 @@
 #define TEXTDRAW_H
 
 #include "SDL.h"
+#include "types.h"
 
 /* struct for bitmap fonts */
 typedef struct Fonts
@@ -20,7 +21,7 @@ typedef enum FontType
 int InitFonts(Fonts* fonts);
 
 /* Draw a message at a given position */
-int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y);
+int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos);
 
 #endif
 
@@ -57,7 +58,7 @@ int InitFonts(Fonts* fonts)
     return 0;
 }
 
-int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, int x, int y)
+int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos)
 {
     SDL_Surface* f;
     switch (font)
@@ -76,20 +77,21 @@ int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType fon
         break;
     }
 
-    const int startX = x - TEXT_CHAR_SPACING_DEFAULT;
-    int i, charX, charY;
-    for (i = 0, charX = startX, charY = y; msg[i] != '\0'; ++i)
+    const int startX = pos.x - TEXT_CHAR_SPACING_DEFAULT;
+    int i;
+    Vec2 charPos;
+    for (i = 0, charPos.x = startX, charPos.y = pos.y; msg[i] != '\0'; ++i)
     {
         if (msg[i] != '\n')
         {
             SDL_Rect srcrect = GetCharRect(msg[i]);
-            charX += TEXT_CHAR_SPACING_DEFAULT;
-            BlitSurfaceCoords(f, &srcrect, screen, charX, charY);
+            charPos.x += TEXT_CHAR_SPACING_DEFAULT;
+            BlitSurfaceCoords(f, &srcrect, screen, charPos);
         }
         else
         {
-            charX = startX;
-            charY += TEXT_LINE_SPACING_DEFAULT;
+            charPos.x = startX;
+            charPos.y += TEXT_LINE_SPACING_DEFAULT;
         }
     }
 

@@ -6,6 +6,7 @@
 #include "input.c"
 #include "player.c"
 #include "textdraw.c"
+#include "room.c"
 #include "statusflag.h"
 
 /* anonymous enum for constants */
@@ -32,6 +33,7 @@ typedef struct GameState
     UserConfig cfg;
     Fonts fonts;
     Player player;
+    Room room;
     SDL_Surface* screen; /* framebuffer surface */
     SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
     SDL_Surface* vScreen480; /* 640 x 480 "game screen" for rendering the game's full image */
@@ -107,6 +109,10 @@ int InitGame(GameState* state)
 
     err = InitFonts(&state->fonts);
     err = InitPlayer(&state->player);
+    /* TEMP init room */
+    state->room.wallsLen = 2;
+    state->room.walls[0] = (Rect){ 60, 60, 20, 20 };
+    state->room.walls[1] = (Rect){ 160, 80, 80, 40 };
 
     return err;
 }
@@ -145,7 +151,7 @@ static int updateGame(GameState* state)
 
     handleEvents(state);
 
-    UpdatePlayer(&state->player, state->vPad);
+    UpdatePlayer(&state->player, &state->room, state->vPad);
 
     /* update quit timer */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -170,6 +176,7 @@ static int drawGame(GameState* state)
     if (CheckFlag(state->statusFlags, STATUS_DRAW_GIZMOS))
     {
         err = DrawPlayerGizmos(&state->player, state->vScreen240);
+        err = DrawRoomGizmos(&state->room, state->vScreen240);
     }
 
     /* vscreen480 (game) */
@@ -250,6 +257,11 @@ static void handleEvents(GameState* state)
                     /* unique to this game */
                     case SDLK_F5:
                         SetFlag(&state->statusFlags, STATUS_HOT_RELOAD);
+                    break;
+
+                    case SDLK_F6:
+                        printf("Reload game requested, re-running InitGame()\n");
+                        InitGame(state);
                     break;
 
                     /* NOTE these inputs may conflict with ut debug mode inputs */

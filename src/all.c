@@ -4,6 +4,8 @@
 #include "statusflag.h"
 #define PLAYER_C
 #include "player.c"
+#define ROOM_C
+#include "room.c"
 #define TEXTDRAW_C
 #include "textdraw.c"
 #define INPUT_C

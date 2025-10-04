@@ -4,6 +4,7 @@
 
 #include "SDL.h"
 #include "types.h"
+#include "room.c"
 
 typedef struct Player {
 	SDL_Surface* lwSprite;
@@ -21,7 +22,7 @@ typedef struct Player {
 } Player;
 
 int InitPlayer(Player* p);
-void UpdatePlayer(Player* p, Uint32 vPad);
+void UpdatePlayer(Player* p, Room* room, Uint32 vPad);
 int DrawPlayer(Player* p, SDL_Surface* screen);
 /* Should be drawn into vscreen240 */
 int DrawPlayerGizmos(Player* p, SDL_Surface* screen);
@@ -94,7 +95,7 @@ int InitPlayer(Player* p)
     return 0;
 }
 
-void UpdatePlayer(Player* p, Uint32 vPad)
+void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 {
     /* handle inputs */
     /* TODO make alias checking less verbose */
@@ -107,51 +108,68 @@ void UpdatePlayer(Player* p, Uint32 vPad)
     	else moveSpeed = (p->isDarkWorld)? PLAYER_RUN_SPEED_DW : PLAYER_RUN_SPEED_LW;
     }
     else moveSpeed = (p->isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
-    int xDir = 0, yDir = 0;
-    if (CheckFlag(vPad, VKEY_DOWN) || CheckFlag(vPad, VKEY_DOWN_A) || CheckFlag(vPad, VKEY_DOWN_B)) yDir = 1;
-    if (CheckFlag(vPad, VKEY_UP) || CheckFlag(vPad, VKEY_UP_A) || CheckFlag(vPad, VKEY_UP_B)) yDir = -1;
-    if (CheckFlag(vPad, VKEY_RIGHT) || CheckFlag(vPad, VKEY_RIGHT_A) || CheckFlag(vPad, VKEY_RIGHT_B)) xDir = 1;
-    if (CheckFlag(vPad, VKEY_LEFT) || CheckFlag(vPad, VKEY_LEFT_A) || CheckFlag(vPad, VKEY_LEFT_B)) xDir = -1;
+    Vec2 dir = (Vec2){0};
+    if (CheckFlag(vPad, VKEY_DOWN) || CheckFlag(vPad, VKEY_DOWN_A) || CheckFlag(vPad, VKEY_DOWN_B)) dir.y = 1;
+    if (CheckFlag(vPad, VKEY_UP) || CheckFlag(vPad, VKEY_UP_A) || CheckFlag(vPad, VKEY_UP_B)) dir.y = -1;
+    if (CheckFlag(vPad, VKEY_RIGHT) || CheckFlag(vPad, VKEY_RIGHT_A) || CheckFlag(vPad, VKEY_RIGHT_B)) dir.x = 1;
+    if (CheckFlag(vPad, VKEY_LEFT) || CheckFlag(vPad, VKEY_LEFT_A) || CheckFlag(vPad, VKEY_LEFT_B)) dir.x = -1;
 
     /* handle movement */
-    SDL_bool isMoving = (xDir != 0 || yDir != 0)? SDL_TRUE : SDL_FALSE;
-    /* STUB collision calculations before moving would go here */
-    p->pos.x += xDir*moveSpeed;
-    p->pos.y += yDir*moveSpeed;
+    SDL_bool isMoving = SDL_FALSE;
+    /* TEMP temporarily just not moving when encountering a collision */
+    /* TODO sliding, moving you right up against wall when hitting collision */
+    Vec2 newPos = (Vec2){ p->pos.x + dir.x*moveSpeed, p->pos.y + dir.y*moveSpeed };
+    Rect newBbox = (Rect){ newPos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    int i;
+    SDL_bool hit = SDL_FALSE;
+    for (i = 0; i < room->wallsLen; ++i)
+    {
+	    if (CheckAABBCollision(newBbox, room->walls[i]))
+	    {
+	    	hit = SDL_TRUE;
+	    	break;
+	    }
+    }
+    if (!hit)
+    {
+    	p->pos = newPos;
+    	p->bbox = newBbox;
+    	if (dir.x != 0 || dir.y != 0) isMoving = SDL_TRUE;
+    }
 
     /* handle turning */
 	switch (p->facing)
 	{
 		case PLAYER_FACE_DOWN:
-			if (yDir < 0) p->facing = PLAYER_FACE_UP;
-			else if (yDir == 0)
+			if (dir.y < 0) p->facing = PLAYER_FACE_UP;
+			else if (dir.y == 0)
 			{
-				if (xDir < 0) p->facing = PLAYER_FACE_LEFT;
-				else if (xDir > 0) p->facing = PLAYER_FACE_RIGHT;
+				if (dir.x < 0) p->facing = PLAYER_FACE_LEFT;
+				else if (dir.x > 0) p->facing = PLAYER_FACE_RIGHT;
 			}
 		break;
 		case PLAYER_FACE_UP:
-			if (yDir > 0) p->facing = PLAYER_FACE_DOWN;
-			else if (yDir == 0)
+			if (dir.y > 0) p->facing = PLAYER_FACE_DOWN;
+			else if (dir.y == 0)
 			{
-				if (xDir < 0) p->facing = PLAYER_FACE_LEFT;
-				else if (xDir > 0) p->facing = PLAYER_FACE_RIGHT;
+				if (dir.x < 0) p->facing = PLAYER_FACE_LEFT;
+				else if (dir.x > 0) p->facing = PLAYER_FACE_RIGHT;
 			}
 		break;
 		case PLAYER_FACE_RIGHT:
-			if (xDir < 0) p->facing = PLAYER_FACE_LEFT;
-			else if (xDir == 0)
+			if (dir.x < 0) p->facing = PLAYER_FACE_LEFT;
+			else if (dir.x == 0)
 			{
-				if (yDir < 0) p->facing = PLAYER_FACE_UP;
-				else if (yDir > 0) p->facing = PLAYER_FACE_DOWN;
+				if (dir.y < 0) p->facing = PLAYER_FACE_UP;
+				else if (dir.y > 0) p->facing = PLAYER_FACE_DOWN;
 			}
     	break;
 		case PLAYER_FACE_LEFT:
-			if (xDir > 0) p->facing = PLAYER_FACE_RIGHT;
-			else if (xDir == 0)
+			if (dir.x > 0) p->facing = PLAYER_FACE_RIGHT;
+			else if (dir.x == 0)
 			{
-				if (yDir < 0) p->facing = PLAYER_FACE_UP;
-				else if (yDir > 0) p->facing = PLAYER_FACE_DOWN;
+				if (dir.y < 0) p->facing = PLAYER_FACE_UP;
+				else if (dir.y > 0) p->facing = PLAYER_FACE_DOWN;
 			}
 		break;
 	}
@@ -207,7 +225,7 @@ int DrawPlayerGizmos(Player* p, SDL_Surface* screen)
 {
     /* TEMP creating rectangle of bbox */
     SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };
-    int err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 40, 240, 60));
+    int err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 0, 255, 0));
     return err;
 }
 

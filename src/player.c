@@ -78,7 +78,7 @@ int InitPlayer(Player* p)
     }
     p->animFrame = 0;
     p->facing = PLAYER_FACE_DOWN;
-    p->pos = (Vec2){0};
+    p->pos = (Vec2){ 260, 110 }; /* TEMP these are hardcoded for the classroom */
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
     p->runCount = 0;
     p->isDarkWorld = SDL_FALSE;

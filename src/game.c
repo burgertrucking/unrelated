@@ -109,10 +109,25 @@ int InitGame(GameState* state)
 
     err = InitFonts(&state->fonts);
     err = InitPlayer(&state->player);
-    /* TEMP init room */
-    state->room.wallsLen = 2;
-    state->room.walls[0] = (Rect){ 60, 60, 20, 20 };
-    state->room.walls[1] = (Rect){ 160, 80, 80, 40 };
+    /* TEMP init room walls (InitRoom() doesn't handle this) */
+    state->room.wallsLen = 16;
+    state->room.walls[0] = (Rect){ 69, 123, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[1] = (Rect){ 69, 154, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[2] = (Rect){ 69, 188, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[3] = (Rect){ 139, 188, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[4] = (Rect){ 139, 154, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[5] = (Rect){ 139, 123, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[6] = (Rect){ 206, 123, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[7] = (Rect){ 206, 154, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[8] = (Rect){ 206, 188, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
+    state->room.walls[9] = (Rect){ 101, 89, 4.63f*TILE_SIZE, 0.79f*TILE_SIZE };
+    state->room.walls[10] = (Rect){ 18, 23, TILE_SIZE, 10.63f*TILE_SIZE };
+    state->room.walls[11] = (Rect){ 38, 218, 12.3f*TILE_SIZE, 0.85f*TILE_SIZE };
+    state->room.walls[12] = (Rect){ 286, 23, 0.85f*TILE_SIZE, 10.63f*TILE_SIZE };
+    state->room.walls[13] = (Rect){ 22, 3, 13.96f*TILE_SIZE, 0.95f*TILE_SIZE };
+    state->room.walls[14] = (Rect){ 269, 52, TILE_SIZE, TILE_SIZE };
+    state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
+    InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
 
     return err;
 }
@@ -169,8 +184,8 @@ static int drawGame(GameState* state)
     int err = 0;
 
     /* vscreen240 (world) */
-    /* draw a green background over the world screen */
-    SDL_FillRect(state->vScreen240, NULL, SDL_MapRGB(state->vScreen240->format, 0, 180, 60));
+    /* TODO handle drawing room depending on screen size (some are optimised for 480p) */
+    err = DrawRoom(&state->room, state->vScreen240);
     err = DrawPlayer(&state->player, state->vScreen240);
     /* draw gizmos for vscreen240 */
     if (CheckFlag(state->statusFlags, STATUS_DRAW_GIZMOS))

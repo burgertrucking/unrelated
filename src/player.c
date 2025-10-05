@@ -51,11 +51,10 @@ enum
 	PLAYER_BBOX_HEIGHT = 14,
 	PLAYER_BBOX_Y_OFFSET = 25, /* TEMP not sure if this is calculated right */
 
-	/* TODO change to down, right, up, left */
     PLAYER_FACE_DOWN = 0,
-    PLAYER_FACE_LEFT,
     PLAYER_FACE_RIGHT,
     PLAYER_FACE_UP,
+    PLAYER_FACE_LEFT,
 
     PLAYER_WALK_SPEED_BASE = 2,
     PLAYER_WALK_SPEED_LW = PLAYER_WALK_SPEED_BASE + 1,

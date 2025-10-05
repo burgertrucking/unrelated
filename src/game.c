@@ -204,7 +204,6 @@ static int drawGame(GameState* state)
     /* scale vscreen240 to size of vscreen480 */
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, (Vec2){0}, (Vec2){2.0f, 2.0f});
     /* TEMP checking if text can be drawn */
-    int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
     /* TEMP draw fps */
     char frameTimeStr[64];
     sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
@@ -213,6 +212,7 @@ static int drawGame(GameState* state)
     /* TEMP draw textbox test */
     if (drawText)
     {
+        int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
         int tbrecty = (state->player.isDarkWorld)? 0 : 167;
         SDL_Rect tbrect = (SDL_Rect){ 0, tbrecty, 593, 167 };
         BlitSurfaceCoords(textbox, &tbrect, state->vScreen480, (Vec2){24, 312});

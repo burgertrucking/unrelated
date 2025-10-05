@@ -12,6 +12,8 @@
 #include "input.c"
 #define BITFLAG_C
 #include "bitflag.c"
+#define TYPES_C
+#include "types.c"
 #define UTILS_C
 #include "utils.c"
 

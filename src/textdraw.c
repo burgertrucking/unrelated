@@ -3,7 +3,7 @@
 #define TEXTDRAW_H
 
 #include "SDL.h"
-#include "types.h"
+#include "types.c"
 
 /* struct for bitmap fonts */
 typedef struct Fonts

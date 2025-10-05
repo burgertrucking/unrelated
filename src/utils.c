@@ -3,7 +3,7 @@
 #define UTILS_H
 
 #include "SDL.h"
-#include "types.h"
+#include "types.c"
 
 /* Load a png image and save it to an SDL_Surface with the same format as the screen */
 SDL_Surface* LoadImage(const char* file);
@@ -11,7 +11,6 @@ SDL_Surface* LoadImage(const char* file);
 int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec2 pos);
 /* Scale a surface then blit it. Does not alpha blend */
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec2 pos, Vec2 scale);
-SDL_bool CheckAABBCollision(Rect a, Rect b);
 
 #endif
 
@@ -53,16 +52,6 @@ int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec
     SDL_Rect dstRect = (SDL_Rect){ pos.x, pos.y, w, h };
     /* NOTE using internal api since 1.2 doesn't have a SDL_BlitSurfaceScaled() equivalent */
     return SDL_SoftStretch(src, srcRect, dst, &dstRect);
-}
-
-SDL_bool CheckAABBCollision(Rect a, Rect b)
-{
-    return
-        (a.x + a.w) >= b.x &&
-        a.x <= (b.x + b.w) &&
-        (a.y + a.h) >= b.y &&
-        a.y <= (b.y + b.h)
-    ;
 }
 
 #endif

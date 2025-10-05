@@ -3,7 +3,7 @@
 #define PLAYER_H
 
 #include "SDL.h"
-#include "types.h"
+#include "types.c"
 #include "room.c"
 
 typedef struct Player {
@@ -38,14 +38,6 @@ enum
     PLAYER_SPRITE_WIDTH = 19,
     PLAYER_SPRITE_HEIGHT = 38,
 
-/*
-	p.BBox = rl.NewRectangle(p.Pos.X, p.Pos.Y + PlayerBBoxYOffset, PlayerSpriteWidth, PlayerBBoxHeight)
-
-	PlayerSpriteWidth = 20
-	PlayerSpriteHeight = 31 // FIXME this is just for rendering, "actual" player height is 30
-	PlayerBBoxHeight = 14
-	PlayerBBoxYOffset = 18 - 1 // TEMP the -1 is because the sprite height is different than the original game
-*/
 	/* TEMP these are rough approximations */
     PLAYER_BBOX_WIDTH = PLAYER_SPRITE_WIDTH,
 	PLAYER_BBOX_HEIGHT = 14,
@@ -115,26 +107,25 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;
-    /* TEMP temporarily just not moving when encountering a collision */
-    /* TODO sliding, moving you right up against wall when hitting collision */
-    Vec2 newPos = (Vec2){ p->pos.x + dir.x*moveSpeed, p->pos.y + dir.y*moveSpeed };
-    Rect newBbox = (Rect){ newPos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    Vec2 newPos = Vec2Add(p->pos, Vec2Scale(dir, moveSpeed));
+    Rect newBboxX = (Rect){ newPos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    Rect newBboxY = (Rect){ p->pos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
     int i;
-    SDL_bool hit = SDL_FALSE;
     for (i = 0; i < room->wallsLen; ++i)
     {
-	    if (CheckAABBCollision(newBbox, room->walls[i]))
+	    if (RectCheckCollisions(newBboxX, room->walls[i]))
 	    {
-	    	hit = SDL_TRUE;
-	    	break;
+	    	if (dir.x == -1) newPos.x = room->walls[i].x + room->walls[i].w;
+	    	else if (dir.x == 1) newPos.x = room->walls[i].x - p->bbox.w;
+	    }
+	    if (RectCheckCollisions(newBboxY, room->walls[i]))
+		{
+	    	if (dir.y == -1) newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
+	    	else if (dir.y == 1) newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
 	    }
     }
-    if (!hit)
-    {
-    	p->pos = newPos;
-    	p->bbox = newBbox;
-    	if (dir.x != 0 || dir.y != 0) isMoving = SDL_TRUE;
-    }
+	p->pos = newPos;
+	if (dir.x != 0 || dir.y != 0) isMoving = SDL_TRUE;
 
     /* handle turning */
 	switch (p->facing)

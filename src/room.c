@@ -3,10 +3,11 @@
 #define ROOM_H
 
 #include "SDL.h"
-#include "types.h"
+#include "types.c"
 
 enum
 {
+    TILE_SIZE = 20,
     MAX_WALLS = 64,
 };
 

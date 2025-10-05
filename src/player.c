@@ -115,17 +115,36 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
     {
 	    if (RectCheckCollisions(newBboxX, room->walls[i]))
 	    {
-	    	if (dir.x == -1) newPos.x = room->walls[i].x + room->walls[i].w;
-	    	else if (dir.x == 1) newPos.x = room->walls[i].x - p->bbox.w;
+	    	if (dir.x == -1)
+	    	{
+	    		newPos.x = room->walls[i].x + room->walls[i].w;
+	    		p->facing = PLAYER_FACE_LEFT;
+	    	}
+	    	else if (dir.x == 1)
+	    	{
+	    		newPos.x = room->walls[i].x - p->bbox.w;
+	    		p->facing = PLAYER_FACE_RIGHT;
+    		}
 	    }
 	    if (RectCheckCollisions(newBboxY, room->walls[i]))
 		{
-	    	if (dir.y == -1) newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
-	    	else if (dir.y == 1) newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
+	    	if (dir.y == -1)
+	    	{
+				newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
+	    		p->facing = PLAYER_FACE_DOWN;
+	    	}
+	    	else if (dir.y == 1)
+	    	{
+				newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
+	    		p->facing = PLAYER_FACE_UP;
+	    	}
 	    }
     }
-	p->pos = newPos;
-	if (dir.x != 0 || dir.y != 0) isMoving = SDL_TRUE;
+	if (!Vec2Equals(p->pos, newPos))
+	{
+		p->pos = newPos;
+		isMoving = SDL_TRUE;
+	}
 
     /* handle turning */
 	switch (p->facing)
@@ -165,7 +184,6 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 	}
 
 	/* handle movement of bbox */
-	/* TEMP */
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET,
     				  PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
 

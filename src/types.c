@@ -27,6 +27,7 @@ Vec2 Vec2Add(Vec2 a, Vec2 b);
 Vec2 Vec2Subtract(Vec2 a, Vec2 b);
 Vec2 Vec2Scale(Vec2 v, float scale);
 float Vec2DotProduct(Vec2 a, Vec2 b);
+SDL_bool Vec2Equals(Vec2 a, Vec2 b);
 
 /* TEMP macro versions */
 /*
@@ -34,6 +35,7 @@ float Vec2DotProduct(Vec2 a, Vec2 b);
 #define Vec2Subtract(A, B) (Vec2){ A.x-B.x, A.y-B.y }
 #define Vec2Scale(V, S) (Vec2){ V.x*S, V.y*S }
 #define Vec2DotProduct(A, B) (float)(A.x*B.x + A.y*B.y)
+#define Vec2Equals(A, B) (A.x == B.x && A.y == B.y)
 */
 
 #endif /* TYPES_H */
@@ -69,6 +71,11 @@ Vec2 Vec2Scale(Vec2 v, float scale)
 float Vec2DotProduct(Vec2 a, Vec2 b)
 {
     return a.x*b.x + a.y*b.y;
+}
+
+SDL_bool Vec2Equals(Vec2 a, Vec2 b)
+{
+    return (a.x == b.x && a.y == b.y);
 }
 
 #endif /* TYPES_C */

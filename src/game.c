@@ -78,6 +78,9 @@ typedef struct RenderInfo
 
 static RenderInfo rinfo;
 static int quitTimer;
+static SDL_bool drawText;
+/* TEMP temporary textbox graphic */
+static SDL_Surface* textbox;
 
 static int updateGame(GameState* state);
 static int drawGame(GameState* state);
@@ -128,6 +131,9 @@ int InitGame(GameState* state)
     state->room.walls[14] = (Rect){ 269, 52, TILE_SIZE, TILE_SIZE };
     state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
     InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
+
+    /* TEMP load temporary textbox graphics */
+    textbox = LoadImage("temp-textbox.png");
 
     return err;
 }
@@ -198,15 +204,21 @@ static int drawGame(GameState* state)
     /* scale vscreen240 to size of vscreen480 */
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, (Vec2){0}, (Vec2){2.0f, 2.0f});
     /* TEMP checking if text can be drawn */
-    const Vec2 textStart = (Vec2){29*2, 170*2}; /* start position for textboxes */
-    int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
-    const char msg[] = "* This town, not that restaurant.\n  It looks weird. I'm not going\n  in...";
-    err = DrawText(msg, &state->fonts, state->vScreen480, font, textStart);
-    /* TEMP draw fps */
-    char frameTimeStr[64];
-    sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
-    if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
-        err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
+    if (drawText)
+    {
+        int tbrecty = (state->player.isDarkWorld)? 0 : 167;
+        SDL_Rect tbrect = (SDL_Rect){ 0, tbrecty, 593, 167 };
+        BlitSurfaceCoords(textbox, &tbrect, state->vScreen480, (Vec2){24, 312});
+        const Vec2 textStart = (Vec2){29*2, 170*2}; /* start position for textboxes */
+        int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
+        const char msg[] = "* \"Try your best, Astral Wolf!\"\n* \"Even in your darkest hour...!\"";
+        err = DrawText(msg, &state->fonts, state->vScreen480, font, textStart);
+        /* TEMP draw fps */
+        char frameTimeStr[64];
+        sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
+        if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
+            err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
+    }
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -280,6 +292,9 @@ static void handleEvents(GameState* state)
                     break;
 
                     /* NOTE these inputs may conflict with ut debug mode inputs */
+                    case SDLK_t:
+                        drawText = !drawText;
+                    break;
                     case SDLK_f: /* NOTE conflicts with esdf movement if g is pressed */
                         ToggleFlag(&state->statusFlags, STATUS_DRAW_FPS);
                     break;

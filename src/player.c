@@ -10,6 +10,7 @@ typedef struct Player {
 	SDL_Surface* lwSprite;
 	SDL_Surface* dwSprite;
 	Rect bbox;
+    Rect checkBbox;
 	Vec2 pos;
     unsigned int runCount; /* counts frames moved for acceleration */
 	unsigned int stillCount; /* counts consecutive frames player stands still; used to play animations while tap moving (not exact to original) */
@@ -19,6 +20,7 @@ typedef struct Player {
 	 /* TODO move to a bitflag with other bools */
     SDL_bool isDarkWorld;
     SDL_bool isRunning;
+    SDL_bool isCutscene;
 } Player;
 
 int InitPlayer(Player* p);
@@ -31,6 +33,11 @@ int DrawPlayerGizmos(Player* p, SDL_Surface* screen);
 
 /* implementation */
 #ifdef PLAYER_C
+
+#include <stdio.h>
+#include "utils.c"
+#include "input.c"
+#include "bitflag.c"
 
 /* constants */
 enum
@@ -62,10 +69,7 @@ enum
     PLAYER_RUN_FPS = 8,
 };
 
-#include <stdio.h>
-#include "utils.c"
-#include "input.c"
-#include "bitflag.c"
+static Rect calcCheckBbox(Player* p);
 
 int InitPlayer(Player* p)
 {
@@ -80,6 +84,7 @@ int InitPlayer(Player* p)
     p->facing = PLAYER_FACE_DOWN;
     p->pos = (Vec2){ 260, 110 }; /* TEMP these are hardcoded for the classroom */
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    p->checkBbox = calcCheckBbox(p);
     p->runCount = 0;
     p->isDarkWorld = SDL_FALSE;
 
@@ -186,6 +191,8 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 	/* handle movement of bbox */
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET,
     				  PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    /* handle movement of check bbox */
+    p->checkBbox = calcCheckBbox(p);
 
 	/* handle animations */
 	/* TODO turn some of these magic numbers into named constants */
@@ -233,8 +240,43 @@ int DrawPlayerGizmos(Player* p, SDL_Surface* screen)
 {
     /* TEMP creating rectangle of bbox */
     SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };
+    SDL_Rect checkGfx = (SDL_Rect){ p->checkBbox.x, p->checkBbox.y, p->checkBbox.w, p->checkBbox.h };
     int err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 0, 255, 0));
+    err = SDL_FillRect(screen, &checkGfx, SDL_MapRGB(screen->format, 0, 255, 255));
     return err;
+}
+
+static Rect calcCheckBbox(Player* p)
+{
+    Rect c;
+    switch (p->facing)
+    {
+        case PLAYER_FACE_DOWN:
+            c.x = p->pos.x + 4;
+            c.y = p->pos.y + 20;
+            c.w = PLAYER_SPRITE_WIDTH - 8;
+            c.h = PLAYER_SPRITE_HEIGHT - 5;
+        break;
+        case PLAYER_FACE_RIGHT:
+            c.x = p->pos.x + PLAYER_SPRITE_WIDTH/2;
+            c.y = p->pos.y + 19;
+            c.w = PLAYER_SPRITE_WIDTH/2 + 15;
+            c.h = PLAYER_SPRITE_HEIGHT - 19;
+        break;
+        case PLAYER_FACE_UP:
+            c.x = p->pos.x + 4;
+            c.y = p->pos.y + 5;
+            c.w = PLAYER_SPRITE_WIDTH - 8;
+            c.h = PLAYER_SPRITE_HEIGHT - 5;
+        break;
+        case PLAYER_FACE_LEFT:
+            c.x = p->pos.x - 15;
+            c.y = p->pos.y + 19;
+            c.w = PLAYER_SPRITE_WIDTH/2 + 15;
+            c.h = PLAYER_SPRITE_HEIGHT - 19;
+        break;
+    }
+    return c;
 }
 
 #endif /* PLAYER_C */

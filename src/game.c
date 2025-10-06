@@ -196,8 +196,8 @@ static int drawGame(GameState* state)
     /* draw gizmos for vscreen240 */
     if (CheckFlag(state->statusFlags, STATUS_DRAW_GIZMOS))
     {
-        err = DrawPlayerGizmos(&state->player, state->vScreen240);
         err = DrawRoomGizmos(&state->room, state->vScreen240);
+        err = DrawPlayerGizmos(&state->player, state->vScreen240);
     }
 
     /* vscreen480 (game) */

@@ -45,10 +45,9 @@ enum
     PLAYER_SPRITE_WIDTH = 19,
     PLAYER_SPRITE_HEIGHT = 38,
 
-	/* TEMP these are rough approximations */
     PLAYER_BBOX_WIDTH = PLAYER_SPRITE_WIDTH,
 	PLAYER_BBOX_HEIGHT = 14,
-	PLAYER_BBOX_Y_OFFSET = 25, /* TEMP not sure if this is calculated right */
+	PLAYER_BBOX_Y_OFFSET = 25,
 
     PLAYER_FACE_DOWN = 0,
     PLAYER_FACE_RIGHT,
@@ -191,8 +190,18 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 	/* handle movement of bbox */
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET,
     				  PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+
     /* handle movement of check bbox */
     p->checkBbox = calcCheckBbox(p);
+    /* handle checking */
+    for (i = 0; i < room->interactablesLen; ++i)
+    {
+        /* TEMP */
+        if (RectCheckCollisions(p->checkBbox, room->interactables[i]) && CheckFlag(vPad, VKEY_ACCEPT))
+        {
+            printf("UpdatePlayer(): Found collision with interactable %i\n", i);
+        }
+    }
 
 	/* handle animations */
 	/* TODO turn some of these magic numbers into named constants */
@@ -251,29 +260,30 @@ static Rect calcCheckBbox(Player* p)
     Rect c;
     switch (p->facing)
     {
+        /* FIXME fix these magic numbers */
         case PLAYER_FACE_DOWN:
             c.x = p->pos.x + 4;
-            c.y = p->pos.y + 20;
+            c.y = p->pos.y + 28;
             c.w = PLAYER_SPRITE_WIDTH - 8;
-            c.h = PLAYER_SPRITE_HEIGHT - 5;
+            c.h = PLAYER_SPRITE_HEIGHT - 11;
         break;
         case PLAYER_FACE_RIGHT:
             c.x = p->pos.x + PLAYER_SPRITE_WIDTH/2;
-            c.y = p->pos.y + 19;
+            c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
             c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_SPRITE_HEIGHT - 19;
+            c.h = PLAYER_SPRITE_HEIGHT - PLAYER_BBOX_Y_OFFSET;
         break;
         case PLAYER_FACE_UP:
             c.x = p->pos.x + 4;
             c.y = p->pos.y + 5;
             c.w = PLAYER_SPRITE_WIDTH - 8;
-            c.h = PLAYER_SPRITE_HEIGHT - 5;
+            c.h = PLAYER_SPRITE_HEIGHT - 11;
         break;
         case PLAYER_FACE_LEFT:
             c.x = p->pos.x - 15;
-            c.y = p->pos.y + 19;
+            c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
             c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_SPRITE_HEIGHT - 19;
+            c.h = PLAYER_SPRITE_HEIGHT - PLAYER_BBOX_Y_OFFSET;
         break;
     }
     return c;

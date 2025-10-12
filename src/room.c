@@ -10,6 +10,7 @@ enum
     TILE_SIZE = 20,
     MAX_TILE_DIM = 64, /* square this for total amount of tiles */
     MAX_WALLS = 64,
+    MAX_INTERACTABLES = 64,
 };
 
 typedef enum RoomSheetType
@@ -36,8 +37,10 @@ typedef struct Room
     RoomSheet sheet;
     Tile tiles[MAX_TILE_DIM][MAX_TILE_DIM];
     Rect walls[MAX_WALLS];
+    Rect interactables[MAX_INTERACTABLES]; /* TEMP just a rect need to code the interacting part */
     int tilesLen;
     int wallsLen;
+    int interactablesLen;
 } Room;
 
 int InitRoom(Room* r, const char* sheetFile, RoomSheetType sheetType);
@@ -89,6 +92,14 @@ int DrawRoomGizmos(Room* r, SDL_Surface* screen)
         err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 0, 0, 255));
         if (err) return err;
     }
+    for (i = 0; i < r->interactablesLen; ++i)
+    {
+        /* TEMP draw solid pink rectangles the size of each interactable */
+        SDL_Rect bboxGfx = (SDL_Rect){ r->interactables[i].x, r->interactables[i].y, r->interactables[i].w, r->interactables[i].h };
+        err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 255, 128, 128));
+        if (err) return err;
+    }
+
     return err;
 }
 

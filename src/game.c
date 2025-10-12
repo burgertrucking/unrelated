@@ -113,6 +113,7 @@ int InitGame(GameState* state)
     err = InitFonts(&state->fonts);
     err = InitPlayer(&state->player);
     /* TEMP init room walls (InitRoom() doesn't handle this) */
+    /* NOTE though these sizes are very close to exact, they are still too fat for the player to fit through */
     state->room.wallsLen = 16;
     state->room.walls[0] = (Rect){ 69, 123, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
     state->room.walls[1] = (Rect){ 69, 154, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
@@ -129,7 +130,15 @@ int InitGame(GameState* state)
     state->room.walls[12] = (Rect){ 286, 23, 0.85f*TILE_SIZE, 10.63f*TILE_SIZE };
     state->room.walls[13] = (Rect){ 22, 3, 13.96f*TILE_SIZE, 0.95f*TILE_SIZE };
     state->room.walls[14] = (Rect){ 269, 52, TILE_SIZE, TILE_SIZE };
+    /*
     state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
+    */
+    /* TEMP init room interactables */
+    /* only some of them used for testing */
+    state->room.interactablesLen = 3;
+    state->room.interactables[0] = (Rect){ 211, 52, 0.9473684*TILE_SIZE, 0.9*TILE_SIZE };
+    state->room.interactables[1] = (Rect){ 103, 89, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
+    state->room.interactables[2] = (Rect){ 167, 92, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
     InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
 
     /* TEMP load temporary textbox graphics */

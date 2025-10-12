@@ -196,7 +196,7 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
     /* handle checking */
     for (i = 0; i < room->interactablesLen; ++i)
     {
-        /* TEMP */
+        /* STUB */
         if (RectCheckCollisions(p->checkBbox, room->interactables[i]) && CheckFlag(vPad, VKEY_ACCEPT))
         {
             printf("UpdatePlayer(): Found collision with interactable %i\n", i);
@@ -271,7 +271,7 @@ static Rect calcCheckBbox(Player* p)
             c.x = p->pos.x + PLAYER_SPRITE_WIDTH/2;
             c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
             c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_SPRITE_HEIGHT - PLAYER_BBOX_Y_OFFSET;
+            c.h = PLAYER_BBOX_HEIGHT;
         break;
         case PLAYER_FACE_UP:
             c.x = p->pos.x + 4;
@@ -283,7 +283,7 @@ static Rect calcCheckBbox(Player* p)
             c.x = p->pos.x - 15;
             c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
             c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_SPRITE_HEIGHT - PLAYER_BBOX_Y_OFFSET;
+            c.h = PLAYER_BBOX_HEIGHT;
         break;
     }
     return c;

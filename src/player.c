@@ -46,8 +46,19 @@ enum
     PLAYER_SPRITE_HEIGHT = 38,
 
     PLAYER_BBOX_WIDTH = PLAYER_SPRITE_WIDTH,
-	PLAYER_BBOX_HEIGHT = 14,
-	PLAYER_BBOX_Y_OFFSET = 25,
+    PLAYER_BBOX_HEIGHT = 14,
+    PLAYER_BBOX_Y_OFFSET = 25,
+
+    PLAYER_CHK_BBOX_X_OFFSET_VER = 4,
+    PLAYER_CHK_BBOX_X_OFFSET_RIGHT = PLAYER_SPRITE_WIDTH/2,
+    PLAYER_CHK_BBOX_X_OFFSET_LEFT = -15,
+    PLAYER_CHK_BBOX_Y_OFFSET_HOR = PLAYER_BBOX_Y_OFFSET,
+    PLAYER_CHK_BBOX_Y_OFFSET_DOWN = 28,
+    PLAYER_CHK_BBOX_Y_OFFSET_UP = 5,
+    PLAYER_CHK_BBOX_WIDTH_VER = PLAYER_SPRITE_WIDTH - 8,
+    PLAYER_CHK_BBOX_HEIGHT_VER = PLAYER_SPRITE_HEIGHT - 11,
+    PLAYER_CHK_BBOX_WIDTH_HOR = PLAYER_SPRITE_WIDTH/2 + 15,
+    PLAYER_CHK_BBOX_HEIGHT_HOR = PLAYER_BBOX_HEIGHT,
 
     PLAYER_FACE_DOWN = 0,
     PLAYER_FACE_RIGHT,
@@ -188,8 +199,7 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 	}
 
 	/* handle movement of bbox */
-    p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET,
-    				  PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+    p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
 
     /* handle movement of check bbox */
     p->checkBbox = calcCheckBbox(p);
@@ -260,30 +270,29 @@ static Rect calcCheckBbox(Player* p)
     Rect c;
     switch (p->facing)
     {
-        /* FIXME fix these magic numbers */
         case PLAYER_FACE_DOWN:
-            c.x = p->pos.x + 4;
-            c.y = p->pos.y + 28;
-            c.w = PLAYER_SPRITE_WIDTH - 8;
-            c.h = PLAYER_SPRITE_HEIGHT - 11;
+            c.x = p->pos.x + PLAYER_CHK_BBOX_X_OFFSET_VER;
+            c.y = p->pos.y + PLAYER_CHK_BBOX_Y_OFFSET_DOWN;
+            c.w = PLAYER_CHK_BBOX_WIDTH_VER;
+            c.h = PLAYER_CHK_BBOX_HEIGHT_VER;
         break;
         case PLAYER_FACE_RIGHT:
-            c.x = p->pos.x + PLAYER_SPRITE_WIDTH/2;
-            c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
-            c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_BBOX_HEIGHT;
+            c.x = p->pos.x + PLAYER_CHK_BBOX_X_OFFSET_RIGHT;
+            c.y = p->pos.y + PLAYER_CHK_BBOX_Y_OFFSET_HOR;
+            c.w = PLAYER_CHK_BBOX_WIDTH_HOR;
+            c.h = PLAYER_CHK_BBOX_HEIGHT_HOR;
         break;
         case PLAYER_FACE_UP:
-            c.x = p->pos.x + 4;
-            c.y = p->pos.y + 5;
-            c.w = PLAYER_SPRITE_WIDTH - 8;
-            c.h = PLAYER_SPRITE_HEIGHT - 11;
+            c.x = p->pos.x + PLAYER_CHK_BBOX_X_OFFSET_VER;
+            c.y = p->pos.y + PLAYER_CHK_BBOX_Y_OFFSET_UP;
+            c.w = PLAYER_CHK_BBOX_WIDTH_VER;
+            c.h = PLAYER_CHK_BBOX_HEIGHT_VER;
         break;
         case PLAYER_FACE_LEFT:
-            c.x = p->pos.x - 15;
-            c.y = p->pos.y + PLAYER_BBOX_Y_OFFSET;
-            c.w = PLAYER_SPRITE_WIDTH/2 + 15;
-            c.h = PLAYER_BBOX_HEIGHT;
+            c.x = p->pos.x + PLAYER_CHK_BBOX_X_OFFSET_LEFT;
+            c.y = p->pos.y + PLAYER_CHK_BBOX_Y_OFFSET_HOR;
+            c.w = PLAYER_CHK_BBOX_WIDTH_HOR;
+            c.h = PLAYER_CHK_BBOX_HEIGHT_HOR;
         break;
     }
     return c;

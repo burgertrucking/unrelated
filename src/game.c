@@ -7,6 +7,7 @@
 #include "player.c"
 #include "textdraw.c"
 #include "room.c"
+#include "textbox.c"
 #include "statusflag.h"
 
 /* anonymous enum for constants */
@@ -34,6 +35,7 @@ typedef struct GameState
     Fonts fonts;
     Player player;
     Room room;
+    Textbox textbox;
     SDL_Surface* screen; /* framebuffer surface */
     SDL_Surface* vScreen240; /* 320 x 240 "world screen" for rendering game world */
     SDL_Surface* vScreen480; /* 640 x 480 "game screen" for rendering the game's full image */
@@ -78,9 +80,6 @@ typedef struct RenderInfo
 
 static RenderInfo rinfo;
 static int quitTimer;
-static SDL_bool drawText;
-/* TEMP temporary textbox graphic */
-static SDL_Surface* textbox;
 
 static int updateGame(GameState* state);
 static int drawGame(GameState* state);
@@ -113,6 +112,7 @@ int InitGame(GameState* state)
 
     err = InitFonts(&state->fonts);
     err = InitPlayer(&state->player);
+    err = InitTextbox(&state->textbox);
     /* TEMP init room walls (InitRoom() doesn't handle this) */
     /* NOTE though these sizes are very close to exact, they are still too fat for the player to fit through */
     state->room.wallsLen = 16;
@@ -141,9 +141,6 @@ int InitGame(GameState* state)
     state->room.interactables[1] = (Rect){ 103, 89, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
     state->room.interactables[2] = (Rect){ 167, 92, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
     InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
-
-    /* TEMP load temporary textbox graphics */
-    textbox = LoadImage("temp-textbox.png");
 
     return err;
 }
@@ -197,7 +194,7 @@ static int updateGame(GameState* state)
 
     handleEvents(state);
 
-    UpdatePlayer(&state->player, &state->room, state->vPad);
+    UpdatePlayer(&state->player, &state->room, &state->textbox, state->vPad);
 
     /* update quit timer */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -234,17 +231,7 @@ static int drawGame(GameState* state)
     sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
     if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
         err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
-    /* TEMP draw textbox test */
-    if (drawText)
-    {
-        int font = (state->player.isDarkWorld)? FONT_MAIN_DW : FONT_MAIN_LW;
-        int tbrecty = (state->player.isDarkWorld)? 0 : 167;
-        SDL_Rect tbrect = (SDL_Rect){ 0, tbrecty, 593, 167 };
-        BlitSurfaceCoords(textbox, &tbrect, state->vScreen480, (Vec2){24, 312});
-        const Vec2 textStart = (Vec2){29*2, 170*2}; /* start position for textboxes */
-        const char msg[] = "* \"Try your best, Astral Wolf!\"\n* \"Even in your darkest hour...!\"";
-        err = DrawText(msg, &state->fonts, state->vScreen480, font, textStart);
-    }
+    err = DrawTextbox(&state->textbox, state->player.isDarkWorld, &state->fonts, state->vScreen480);
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -318,9 +305,6 @@ static void handleEvents(GameState* state)
                     break;
 
                     /* NOTE these inputs may conflict with ut debug mode inputs */
-                    case SDLK_t:
-                        drawText = !drawText;
-                    break;
                     case SDLK_f: /* NOTE conflicts with esdf movement if g is pressed */
                         ToggleFlag(&state->statusFlags, STATUS_DRAW_FPS);
                     break;

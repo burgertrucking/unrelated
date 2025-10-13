@@ -6,6 +6,8 @@
 #include "player.c"
 #define ROOM_C
 #include "room.c"
+#define TEXTBOX_C
+#include "textbox.c"
 #define TEXTDRAW_C
 #include "textdraw.c"
 #define INPUT_C

@@ -5,6 +5,7 @@
 #include "SDL.h"
 #include "types.c"
 #include "room.c"
+#include "textbox.c"
 
 typedef struct Player {
 	SDL_Surface* lwSprite;
@@ -24,7 +25,7 @@ typedef struct Player {
 } Player;
 
 int InitPlayer(Player* p);
-void UpdatePlayer(Player* p, Room* room, Uint32 vPad);
+void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad);
 int DrawPlayer(Player* p, SDL_Surface* screen);
 /* Should be drawn into vscreen240 */
 int DrawPlayerGizmos(Player* p, SDL_Surface* screen);
@@ -97,12 +98,17 @@ int InitPlayer(Player* p)
     p->checkBbox = calcCheckBbox(p);
     p->runCount = 0;
     p->isDarkWorld = SDL_FALSE;
+    p->isCutscene = SDL_FALSE;
 
     return 0;
 }
 
-void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
+void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad)
 {
+	/* STUB just don't update player when in cutscene */
+	/* consider using fsm instead for this */
+	if (p->isCutscene) return;
+
     /* handle inputs */
     /* TODO make alias checking less verbose */
     p->isRunning = (CheckFlag(vPad, VKEY_CANCEL_HELD) || CheckFlag(vPad, VKEY_CANCEL_A_HELD) || CheckFlag(vPad, VKEY_CANCEL_B_HELD));
@@ -209,7 +215,8 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
         /* STUB */
         if (RectCheckCollisions(p->checkBbox, room->interactables[i]) && CheckFlag(vPad, VKEY_ACCEPT))
         {
-            printf("UpdatePlayer(): Found collision with interactable %i\n", i);
+        	p->isCutscene = SDL_TRUE;
+        	tb->shouldDraw = SDL_TRUE;
         }
     }
 

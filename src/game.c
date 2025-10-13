@@ -101,6 +101,7 @@ int InitGame(GameState* state)
     int err = setVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
 	if (err) return err;
 	SDL_WM_SetCaption("UNRELATED", NULL);
+	SDL_EnableKeyRepeat(0, 0);
     /* pixel format for current monitor, used for creating game's virtual screens */
 	SDL_PixelFormat pf = *state->screen->format;
 	state->vScreen240 = SDL_CreateRGBSurface(SDL_SWSURFACE, WORLD_RES_WIDTH, WORLD_RES_HEIGHT,
@@ -163,6 +164,21 @@ int UpdateDrawFrame(GameState* state)
 
     /* Clear non-persistent flags */
     ClearFlag(&state->statusFlags, STATUS_WINDOW_RESIZED);
+    /* clear current frame's keydown status (leaving only held) */
+    if (CheckFlag(state->vPad, VKEY_DOWN)) ClearFlag(&state->vPad, VKEY_DOWN);
+    if (CheckFlag(state->vPad, VKEY_RIGHT)) ClearFlag(&state->vPad, VKEY_RIGHT);
+    if (CheckFlag(state->vPad, VKEY_UP)) ClearFlag(&state->vPad, VKEY_UP);
+    if (CheckFlag(state->vPad, VKEY_LEFT)) ClearFlag(&state->vPad, VKEY_LEFT);
+    if (CheckFlag(state->vPad, VKEY_ACCEPT)) ClearFlag(&state->vPad, VKEY_ACCEPT);
+    if (CheckFlag(state->vPad, VKEY_CANCEL)) ClearFlag(&state->vPad, VKEY_CANCEL);
+    if (CheckFlag(state->vPad, VKEY_MENU)) ClearFlag(&state->vPad, VKEY_MENU);
+    if (CheckFlag(state->vPad, VKEY_ACCEPT_A)) ClearFlag(&state->vPad, VKEY_ACCEPT_A);
+    if (CheckFlag(state->vPad, VKEY_CANCEL_A)) ClearFlag(&state->vPad, VKEY_CANCEL_A);
+    if (CheckFlag(state->vPad, VKEY_MENU_A)) ClearFlag(&state->vPad, VKEY_MENU_A);
+    if (CheckFlag(state->vPad, VKEY_ACCEPT_B)) ClearFlag(&state->vPad, VKEY_ACCEPT_B);
+    if (CheckFlag(state->vPad, VKEY_CANCEL_B)) ClearFlag(&state->vPad, VKEY_CANCEL_B);
+    if (CheckFlag(state->vPad, VKEY_MENU_B)) ClearFlag(&state->vPad, VKEY_MENU_B);
+
 
     /* Delay between frames (effective 30 FPS lock) */
     rinfo.end = SDL_GetTicks();
@@ -373,42 +389,97 @@ static void handleEvents(GameState* state)
         }
 
         /* handle player input (done here since switch statements must use compile time constants) */
+
+        /* check for key down or key up events */
         SDLKey key = state->event.key.keysym.sym;
         if (state->event.type == SDL_KEYDOWN)
         {
-            if (key == state->cfg.keys.down) SetFlag(&state->vPad, VKEY_DOWN);
-            if (key == state->cfg.keys.up) SetFlag(&state->vPad, VKEY_UP);
-            if (key == state->cfg.keys.left) SetFlag(&state->vPad, VKEY_LEFT);
-            if (key == state->cfg.keys.right) SetFlag(&state->vPad, VKEY_RIGHT);
-            if (key == state->cfg.keys.accept) SetFlag(&state->vPad, VKEY_ACCEPT);
-            if (key == state->cfg.keys.cancel) SetFlag(&state->vPad, VKEY_CANCEL);
-            if (key == state->cfg.keys.menu) SetFlag(&state->vPad, VKEY_MENU);
+            if (key == state->cfg.keys.down)
+            {
+                SetFlag(&state->vPad, VKEY_DOWN);
+                SetFlag(&state->vPad, VKEY_DOWN_HELD);
+            }
+            if (key == state->cfg.keys.up)
+            {
+                SetFlag(&state->vPad, VKEY_UP);
+                SetFlag(&state->vPad, VKEY_UP_HELD);
+            }
+            if (key == state->cfg.keys.left)
+            {
+                SetFlag(&state->vPad, VKEY_LEFT);
+                SetFlag(&state->vPad, VKEY_LEFT_HELD);
+            }
+            if (key == state->cfg.keys.right)
+            {
+                SetFlag(&state->vPad, VKEY_RIGHT);
+                SetFlag(&state->vPad, VKEY_RIGHT_HELD);
+            }
+            if (key == state->cfg.keys.accept)
+            {
+                SetFlag(&state->vPad, VKEY_ACCEPT);
+                SetFlag(&state->vPad, VKEY_ACCEPT_HELD);
+            }
+            if (key == state->cfg.keys.cancel)
+            {
+                SetFlag(&state->vPad, VKEY_CANCEL);
+                SetFlag(&state->vPad, VKEY_CANCEL_HELD);
+            }
+            if (key == state->cfg.keys.menu)
+            {
+                SetFlag(&state->vPad, VKEY_MENU);
+                SetFlag(&state->vPad, VKEY_MENU_HELD);
+            }
 
-            if (key == state->cfg.keys.acceptA) SetFlag(&state->vPad, VKEY_ACCEPT_A);
-            if (key == state->cfg.keys.cancelA) SetFlag(&state->vPad, VKEY_CANCEL_A);
-            if (key == state->cfg.keys.menuA) SetFlag(&state->vPad, VKEY_MENU_A);
+            if (key == state->cfg.keys.acceptA)
+            {
+                SetFlag(&state->vPad, VKEY_ACCEPT_A);
+                SetFlag(&state->vPad, VKEY_ACCEPT_A_HELD);
+            }
+            if (key == state->cfg.keys.cancelA)
+            {
+                SetFlag(&state->vPad, VKEY_CANCEL_A);
+                SetFlag(&state->vPad, VKEY_CANCEL_A_HELD);
+            }
+            if (key == state->cfg.keys.menuA)
+            {
+                SetFlag(&state->vPad, VKEY_MENU_A);
+                SetFlag(&state->vPad, VKEY_MENU_A_HELD);
+            }
 
-            if (key == state->cfg.keys.acceptB) SetFlag(&state->vPad, VKEY_ACCEPT_B);
-            if (key == state->cfg.keys.cancelB) SetFlag(&state->vPad, VKEY_CANCEL_B);
-            if (key == state->cfg.keys.menuB) SetFlag(&state->vPad, VKEY_MENU_B);
+            if (key == state->cfg.keys.acceptB)
+            {
+                SetFlag(&state->vPad, VKEY_ACCEPT_B);
+                SetFlag(&state->vPad, VKEY_ACCEPT_B_HELD);
+            }
+            if (key == state->cfg.keys.cancelB)
+            {
+                SetFlag(&state->vPad, VKEY_CANCEL_B);
+                SetFlag(&state->vPad, VKEY_CANCEL_B_HELD);
+            }
+            if (key == state->cfg.keys.menuB)
+            {
+                SetFlag(&state->vPad, VKEY_MENU_B);
+                SetFlag(&state->vPad, VKEY_MENU_B_HELD);
+            }
         }
         else if (state->event.type == SDL_KEYUP)
         {
-            if (key == state->cfg.keys.down) ClearFlag(&state->vPad, VKEY_DOWN);
-            if (key == state->cfg.keys.up) ClearFlag(&state->vPad, VKEY_UP);
-            if (key == state->cfg.keys.left) ClearFlag(&state->vPad, VKEY_LEFT);
-            if (key == state->cfg.keys.right) ClearFlag(&state->vPad, VKEY_RIGHT);
-            if (key == state->cfg.keys.accept) ClearFlag(&state->vPad, VKEY_ACCEPT);
-            if (key == state->cfg.keys.cancel) ClearFlag(&state->vPad, VKEY_CANCEL);
-            if (key == state->cfg.keys.menu) ClearFlag(&state->vPad, VKEY_MENU);
+            /* Non-held flags are cleared at the end of every frame */
+            if (key == state->cfg.keys.down) ClearFlag(&state->vPad, VKEY_DOWN_HELD);
+            if (key == state->cfg.keys.up) ClearFlag(&state->vPad, VKEY_UP_HELD);
+            if (key == state->cfg.keys.left) ClearFlag(&state->vPad, VKEY_LEFT_HELD);
+            if (key == state->cfg.keys.right) ClearFlag(&state->vPad, VKEY_RIGHT_HELD);
+            if (key == state->cfg.keys.accept) ClearFlag(&state->vPad, VKEY_ACCEPT_HELD);
+            if (key == state->cfg.keys.cancel) ClearFlag(&state->vPad, VKEY_CANCEL_HELD);
+            if (key == state->cfg.keys.menu) ClearFlag(&state->vPad, VKEY_MENU_HELD);
 
-            if (key == state->cfg.keys.acceptA) ClearFlag(&state->vPad, VKEY_ACCEPT_A);
-            if (key == state->cfg.keys.cancelA) ClearFlag(&state->vPad, VKEY_CANCEL_A);
-            if (key == state->cfg.keys.menuA) ClearFlag(&state->vPad, VKEY_MENU_A);
+            if (key == state->cfg.keys.acceptA) ClearFlag(&state->vPad, VKEY_ACCEPT_A_HELD);
+            if (key == state->cfg.keys.cancelA) ClearFlag(&state->vPad, VKEY_CANCEL_A_HELD);
+            if (key == state->cfg.keys.menuA) ClearFlag(&state->vPad, VKEY_MENU_A_HELD);
 
-            if (key == state->cfg.keys.acceptB) ClearFlag(&state->vPad, VKEY_ACCEPT_B);
-            if (key == state->cfg.keys.cancelB) ClearFlag(&state->vPad, VKEY_CANCEL_B);
-            if (key == state->cfg.keys.menuB) ClearFlag(&state->vPad, VKEY_MENU_B);
+            if (key == state->cfg.keys.acceptB) ClearFlag(&state->vPad, VKEY_ACCEPT_B_HELD);
+            if (key == state->cfg.keys.cancelB) ClearFlag(&state->vPad, VKEY_CANCEL_B_HELD);
+            if (key == state->cfg.keys.menuB) ClearFlag(&state->vPad, VKEY_MENU_B_HELD);
         }
     }
 }

@@ -105,7 +105,7 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
 {
     /* handle inputs */
     /* TODO make alias checking less verbose */
-    p->isRunning = (CheckFlag(vPad, VKEY_CANCEL) || CheckFlag(vPad, VKEY_CANCEL_A) || CheckFlag(vPad, VKEY_CANCEL_B));
+    p->isRunning = (CheckFlag(vPad, VKEY_CANCEL_HELD) || CheckFlag(vPad, VKEY_CANCEL_A_HELD) || CheckFlag(vPad, VKEY_CANCEL_B_HELD));
     int moveSpeed;
     if (p->isRunning)
     {
@@ -115,10 +115,10 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
     }
     else moveSpeed = (p->isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
     Vec2 dir = (Vec2){0};
-    if (CheckFlag(vPad, VKEY_DOWN)) dir.y = 1;
-    if (CheckFlag(vPad, VKEY_UP)) dir.y = -1;
-    if (CheckFlag(vPad, VKEY_RIGHT)) dir.x = 1;
-    if (CheckFlag(vPad, VKEY_LEFT)) dir.x = -1;
+    if (CheckFlag(vPad, VKEY_DOWN_HELD)) dir.y = 1;
+    if (CheckFlag(vPad, VKEY_UP_HELD)) dir.y = -1;
+    if (CheckFlag(vPad, VKEY_RIGHT_HELD)) dir.x = 1;
+    if (CheckFlag(vPad, VKEY_LEFT_HELD)) dir.x = -1;
 
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;

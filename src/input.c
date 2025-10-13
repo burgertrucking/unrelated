@@ -6,10 +6,10 @@
 
 typedef enum InputButton
 {
-    VKEY_UP = 1 << 0,
-    VKEY_DOWN = 1 << 1,
-    VKEY_LEFT = 1 << 2,
-    VKEY_RIGHT = 1 << 3,
+    VKEY_DOWN = 1 << 0,
+    VKEY_RIGHT = 1 << 1,
+    VKEY_UP = 1 << 2,
+    VKEY_LEFT = 1 << 3,
     VKEY_ACCEPT = 1 << 4,
     VKEY_CANCEL = 1 << 5,
     VKEY_MENU = 1 << 6,
@@ -24,10 +24,10 @@ typedef enum InputButton
     VKEY_MENU_B = 1 << 12,
 
     /* These get set to 1 if a button has been held down for multiple consecutive frames */
-    VKEY_UP_HELD = 1 << 13,
-    VKEY_DOWN_HELD = 1 << 14,
-    VKEY_LEFT_HELD = 1 << 15,
-    VKEY_RIGHT_HELD = 1 << 16,
+    VKEY_DOWN_HELD = 1 << 13,
+    VKEY_RIGHT_HELD = 1 << 14,
+    VKEY_UP_HELD = 1 << 15,
+    VKEY_LEFT_HELD = 1 << 16,
     VKEY_ACCEPT_HELD = 1 << 17,
     VKEY_CANCEL_HELD = 1 << 18,
     VKEY_MENU_HELD = 1 << 19,

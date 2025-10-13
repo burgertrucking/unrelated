@@ -115,10 +115,10 @@ void UpdatePlayer(Player* p, Room* room, Uint32 vPad)
     }
     else moveSpeed = (p->isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
     Vec2 dir = (Vec2){0};
-    if (CheckFlag(vPad, VKEY_DOWN) || CheckFlag(vPad, VKEY_DOWN_A) || CheckFlag(vPad, VKEY_DOWN_B)) dir.y = 1;
-    if (CheckFlag(vPad, VKEY_UP) || CheckFlag(vPad, VKEY_UP_A) || CheckFlag(vPad, VKEY_UP_B)) dir.y = -1;
-    if (CheckFlag(vPad, VKEY_RIGHT) || CheckFlag(vPad, VKEY_RIGHT_A) || CheckFlag(vPad, VKEY_RIGHT_B)) dir.x = 1;
-    if (CheckFlag(vPad, VKEY_LEFT) || CheckFlag(vPad, VKEY_LEFT_A) || CheckFlag(vPad, VKEY_LEFT_B)) dir.x = -1;
+    if (CheckFlag(vPad, VKEY_DOWN)) dir.y = 1;
+    if (CheckFlag(vPad, VKEY_UP)) dir.y = -1;
+    if (CheckFlag(vPad, VKEY_RIGHT)) dir.x = 1;
+    if (CheckFlag(vPad, VKEY_LEFT)) dir.x = -1;
 
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;

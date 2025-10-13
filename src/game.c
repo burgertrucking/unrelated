@@ -311,14 +311,6 @@ static void handleEvents(GameState* state)
                     case SDLK_g:
                         state->player.isDarkWorld = !state->player.isDarkWorld;
                     break;
-                    case SDLK_h:
-                        /* TEMP rebinding esdf to wasd to test key rebinding */
-                        printf("handleEvents: changing WASD to ESDF\n");
-                        state->cfg.keys.upA = SDLK_e;
-                        state->cfg.keys.leftA = SDLK_s;
-                        state->cfg.keys.downA = SDLK_d;
-                        state->cfg.keys.rightA = SDLK_f;
-                    break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:
                         setVideoRes(state, WORLD_RES_WIDTH, WORLD_RES_HEIGHT, WINDOW_RESIZABLE);
@@ -392,18 +384,10 @@ static void handleEvents(GameState* state)
             if (key == state->cfg.keys.cancel) SetFlag(&state->vPad, VKEY_CANCEL);
             if (key == state->cfg.keys.menu) SetFlag(&state->vPad, VKEY_MENU);
 
-            if (key == state->cfg.keys.downA) SetFlag(&state->vPad, VKEY_DOWN_A);
-            if (key == state->cfg.keys.upA) SetFlag(&state->vPad, VKEY_UP_A);
-            if (key == state->cfg.keys.leftA) SetFlag(&state->vPad, VKEY_LEFT_A);
-            if (key == state->cfg.keys.rightA) SetFlag(&state->vPad, VKEY_RIGHT_A);
             if (key == state->cfg.keys.acceptA) SetFlag(&state->vPad, VKEY_ACCEPT_A);
             if (key == state->cfg.keys.cancelA) SetFlag(&state->vPad, VKEY_CANCEL_A);
             if (key == state->cfg.keys.menuA) SetFlag(&state->vPad, VKEY_MENU_A);
 
-            if (key == state->cfg.keys.downB) SetFlag(&state->vPad, VKEY_DOWN_B);
-            if (key == state->cfg.keys.upB) SetFlag(&state->vPad, VKEY_UP_B);
-            if (key == state->cfg.keys.leftB) SetFlag(&state->vPad, VKEY_LEFT_B);
-            if (key == state->cfg.keys.rightB) SetFlag(&state->vPad, VKEY_RIGHT_B);
             if (key == state->cfg.keys.acceptB) SetFlag(&state->vPad, VKEY_ACCEPT_B);
             if (key == state->cfg.keys.cancelB) SetFlag(&state->vPad, VKEY_CANCEL_B);
             if (key == state->cfg.keys.menuB) SetFlag(&state->vPad, VKEY_MENU_B);
@@ -418,18 +402,10 @@ static void handleEvents(GameState* state)
             if (key == state->cfg.keys.cancel) ClearFlag(&state->vPad, VKEY_CANCEL);
             if (key == state->cfg.keys.menu) ClearFlag(&state->vPad, VKEY_MENU);
 
-            if (key == state->cfg.keys.downA) ClearFlag(&state->vPad, VKEY_DOWN_A);
-            if (key == state->cfg.keys.upA) ClearFlag(&state->vPad, VKEY_UP_A);
-            if (key == state->cfg.keys.leftA) ClearFlag(&state->vPad, VKEY_LEFT_A);
-            if (key == state->cfg.keys.rightA) ClearFlag(&state->vPad, VKEY_RIGHT_A);
             if (key == state->cfg.keys.acceptA) ClearFlag(&state->vPad, VKEY_ACCEPT_A);
             if (key == state->cfg.keys.cancelA) ClearFlag(&state->vPad, VKEY_CANCEL_A);
             if (key == state->cfg.keys.menuA) ClearFlag(&state->vPad, VKEY_MENU_A);
 
-            if (key == state->cfg.keys.downB) ClearFlag(&state->vPad, VKEY_DOWN_B);
-            if (key == state->cfg.keys.upB) ClearFlag(&state->vPad, VKEY_UP_B);
-            if (key == state->cfg.keys.leftB) ClearFlag(&state->vPad, VKEY_LEFT_B);
-            if (key == state->cfg.keys.rightB) ClearFlag(&state->vPad, VKEY_RIGHT_B);
             if (key == state->cfg.keys.acceptB) ClearFlag(&state->vPad, VKEY_ACCEPT_B);
             if (key == state->cfg.keys.cancelB) ClearFlag(&state->vPad, VKEY_CANCEL_B);
             if (key == state->cfg.keys.menuB) ClearFlag(&state->vPad, VKEY_MENU_B);

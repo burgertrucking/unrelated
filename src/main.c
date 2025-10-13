@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 			}
 		#else
 			err = UpdateDrawFrame(&state);
-			if (err) LogError(err, "UpdateDrawFrame");
+			if (err) logError(err, "UpdateDrawFrame");
 		#endif
 	}
 	

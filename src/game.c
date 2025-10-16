@@ -135,19 +135,51 @@ int InitGame(GameState* state)
     state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
     /* TEMP init room interactables */
     /* only some of them used for testing */
-    state->room.interactablesLen = 3;
+    state->room.interactablesLen = 5;
+    /* clock */
     state->room.interactables[0].bbox = (Rect){ 211, 52, 0.9473684*TILE_SIZE, 0.9*TILE_SIZE };
-    state->room.interactables[0].msgsLen = 1;
+    state->room.interactables[0].msgsLen = 2;
     state->room.interactables[0].msgs[0] = 0;
-    state->room.msgs[0].msg = (String){ "* This is a test string", sizeof("* This is a test string")};
+    state->room.interactables[0].msgs[1] = 9;
+    state->room.msgs[0].msg = (String){ "* (You checked the time.)", 99 };
     state->room.msgs[0].next = 1;
-    state->room.msgs[1].msg = (String){ "* With two boxes", sizeof("* With two boxes")};
+    state->room.msgs[1].msg = (String){ "* (... It seems to not be time\n  for class.", 99 };
     state->room.msgs[1].next = -1;
-    state->room.interactables[0].msgs[1] = 2;
-    state->room.msgs[2].msg = (String){ "* I checked it again mom", sizeof("* I checked it again mom")};
+    state->room.msgs[9].msg = (String){ "* (You wonder if they even hold\n  classes here.)", 99 };
+    state->room.msgs[9].next = -1;
+    /* flowers */
+    state->room.interactables[1].bbox = (Rect){ 101, 76, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
+    state->room.interactables[1].msgsLen = 2;
+    state->room.interactables[1].msgs[0] = 2;
+    state->room.interactables[1].msgs[1] = 8;
+    state->room.msgs[2].msg = (String){ "* (There would normally be a\n  bunch of roses here, but it\n  seems the dev is lazy.)", 99 };
     state->room.msgs[2].next = -1;
-    state->room.interactables[1].bbox = (Rect){ 103, 89, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
-    state->room.interactables[2].bbox = (Rect){ 167, 92, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
+    state->room.msgs[8].msg = (String){ "* (What an asshole.)", 99 };
+    state->room.msgs[8].next = -1;
+    /* computer */
+    state->room.interactables[2].bbox = (Rect){ 165, 79, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
+    state->room.interactables[2].msgsLen = 1;
+    state->room.interactables[2].msgs[0] = 3;
+    state->room.msgs[3].msg = (String){ "* (The computer is turned off.)", 99 };
+    state->room.msgs[3].next = 4;
+    state->room.msgs[4].msg = (String){ "* (You felt like no matter what\n  you tried, you would never be\n  see what's on the monitor.)", 99 };
+    state->room.msgs[4].next = -1;
+    /* posters */
+    state->room.interactables[3].bbox = (Rect){ 45, 47, TILE_SIZE, TILE_SIZE };
+    state->room.interactables[3].msgsLen = 1;
+    state->room.interactables[3].msgs[0] = 5;
+    state->room.msgs[5].msg = (String){ "* (Looks like motivational quotes\n  from various literature.)", 99 };
+    state->room.msgs[5].next = 6;
+    state->room.msgs[6].msg = (String){ "* \"Try your best, Astral Wolf!\"\n* \"Even in your darkest hour...\"", 99 };
+    state->room.msgs[6].next = 7;
+    state->room.msgs[7].msg = (String){ "* (...that one seems to be from\n  a video game.)", 99 };
+    state->room.msgs[7].next = -1;
+    /* the curious case of the missing doorway */
+    state->room.interactables[4].bbox = (Rect){ 235, 52, 1.7*TILE_SIZE, TILE_SIZE };
+    state->room.interactables[4].msgsLen = 1;
+    state->room.interactables[4].msgs[0] = 10;
+    state->room.msgs[10].msg = (String){ "* (You wonder where the heck the\n  door went.)", 99 };
+    state->room.msgs[10].next = -1;
     InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
 
     return err;

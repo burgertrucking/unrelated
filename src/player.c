@@ -209,7 +209,6 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     /* handle checking */
     for (i = 0; i < room->interactablesLen; ++i)
     {
-        /* STUB */
         Interactable* obj = &room->interactables[i];
         if (RectCheckCollisions(p->checkBbox, obj->bbox) && CheckFlag(vPad, VKEY_ACCEPT))
         {
@@ -223,10 +222,10 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
         	}
         	else
         	{
-	        	SDL_bool maxChecks = obj->checkCount >= obj->msgsLen;
-	        	if (maxChecks) printf("DEBUG: UpdatePlayer: max checks on interactable %i\n", i);
-	        	tb->msgToDraw = (maxChecks)? obj->msgs[obj->msgsLen] : obj->msgs[obj->checkCount];
-	        	++obj->checkCount;
+                tb->msgToDraw = obj->msgs[obj->checkCount];
+                SDL_bool maxChecks = obj->checkCount >= obj->msgsLen - 1;
+                if (maxChecks) printf("DEBUG: UpdatePlayer: max checks (%i) on interactable %i\n", obj->msgsLen, i);
+                else ++obj->checkCount;
         	}
         	isMoving = SDL_FALSE;
         }

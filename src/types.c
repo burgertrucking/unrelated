@@ -29,6 +29,13 @@ Vec2 Vec2Scale(Vec2 v, float scale);
 float Vec2DotProduct(Vec2 a, Vec2 b);
 SDL_bool Vec2Equals(Vec2 a, Vec2 b);
 
+/* string type with length */
+typedef struct String
+{
+    char* data;
+    unsigned int len;
+} String;
+
 /* TEMP macro versions */
 /*
 #define Vec2Add(A, B) (Vec2){ A.x+B.x, A.y+B.y }

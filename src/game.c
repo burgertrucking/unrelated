@@ -131,9 +131,7 @@ int InitGame(GameState* state)
     state->room.walls[12] = (Rect){ 286, 23, 0.85f*TILE_SIZE, 10.63f*TILE_SIZE };
     state->room.walls[13] = (Rect){ 22, 3, 13.96f*TILE_SIZE, 0.95f*TILE_SIZE };
     state->room.walls[14] = (Rect){ 269, 52, TILE_SIZE, TILE_SIZE };
-    /*
     state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
-    */
     /* TEMP init room interactables */
     /* only some of them used for testing */
     state->room.interactablesLen = 3;
@@ -194,7 +192,8 @@ static int updateGame(GameState* state)
 
     handleEvents(state);
 
-    UpdatePlayer(&state->player, &state->room, &state->textbox, state->vPad);
+    UpdatePlayer(&state->player, &state->room, &state->textbox, state->vPad, &state->statusFlags);
+    UpdateTextbox(&state->textbox, state->vPad, &state->statusFlags);
 
     /* update quit timer */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -214,7 +213,7 @@ static int drawGame(GameState* state)
     /* vscreen240 (world) */
     /* TODO handle drawing room depending on screen size (some are optimised for 480p) */
     err = DrawRoom(&state->room, state->vScreen240);
-    err = DrawPlayer(&state->player, state->vScreen240);
+    err = DrawPlayer(&state->player, state->vScreen240, state->statusFlags);
     /* draw gizmos for vscreen240 */
     if (CheckFlag(state->statusFlags, STATUS_DRAW_GIZMOS))
     {
@@ -227,15 +226,19 @@ static int drawGame(GameState* state)
     err = BlitSurfaceScaled(state->vScreen240, NULL, state->vScreen480, (Vec2){0}, (Vec2){2.0f, 2.0f});
     /* TEMP checking if text can be drawn */
     /* TEMP draw fps */
-    char frameTimeStr[64];
-    sprintf(frameTimeStr, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
+    char ftstrData[64];
+    sprintf(ftstrData, "FPS: %.3f\nRender time: %u ms\n(target < %u)", rinfo.fps, rinfo.renderTime, TICK_RATE);
+    String frameTimeStr = (String) { ftstrData, 64 };
     if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
         err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
-    err = DrawTextbox(&state->textbox, state->player.isDarkWorld, &state->fonts, state->vScreen480);
+    err = DrawTextbox(&state->textbox, CheckFlag(state->statusFlags, STATUS_IS_DARK_WORLD), &state->fonts, state->vScreen480);
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
-        DrawText("QUITTING...", &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
+    {
+        String quitText = (String){ "QUITTING...", sizeof("QUITTING...") };
+        DrawText(quitText, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
+    }
 
     /* screen (the actual window) */
     /* draw a black background over the framebuffer */
@@ -309,7 +312,7 @@ static void handleEvents(GameState* state)
                         ToggleFlag(&state->statusFlags, STATUS_DRAW_FPS);
                     break;
                     case SDLK_g:
-                        state->player.isDarkWorld = !state->player.isDarkWorld;
+                        ToggleFlag(&state->statusFlags, STATUS_IS_DARK_WORLD);
                     break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:

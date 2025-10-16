@@ -21,7 +21,7 @@ typedef enum FontType
 int InitFonts(Fonts* fonts);
 
 /* Draw a message at a given position */
-int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos);
+int DrawText(String msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos);
 
 #endif
 
@@ -58,7 +58,7 @@ int InitFonts(Fonts* fonts)
     return 0;
 }
 
-int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos)
+int DrawText(String msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Vec2 pos)
 {
     SDL_Surface* f;
     switch (font)
@@ -78,13 +78,14 @@ int DrawText(const char* msg, Fonts* fontImgs, SDL_Surface* screen, FontType fon
     }
 
     const int startX = pos.x - TEXT_CHAR_SPACING_DEFAULT;
-    int i;
+    unsigned int i;
     Vec2 charPos;
-    for (i = 0, charPos.x = startX, charPos.y = pos.y; msg[i] != '\0'; ++i)
+    /* null character check allows for rendering strings shorter than their buffer size (eg. when drawing fps) */
+    for (i = 0, charPos.x = startX, charPos.y = pos.y; i < msg.len && msg.data[i] != '\0'; ++i)
     {
-        if (msg[i] != '\n')
+        if (msg.data[i] != '\n')
         {
-            SDL_Rect srcrect = GetCharRect(msg[i]);
+            SDL_Rect srcrect = GetCharRect(msg.data[i]);
             charPos.x += TEXT_CHAR_SPACING_DEFAULT;
             BlitSurfaceCoords(f, &srcrect, screen, charPos);
         }

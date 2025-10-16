@@ -19,14 +19,12 @@ typedef struct Player {
     unsigned int animFrame;
     unsigned int facing;
 	 /* TODO move to a bitflag with other bools */
-    SDL_bool isDarkWorld;
     SDL_bool isRunning;
-    SDL_bool isCutscene;
 } Player;
 
 int InitPlayer(Player* p);
-void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad);
-int DrawPlayer(Player* p, SDL_Surface* screen);
+void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* status);
+int DrawPlayer(Player* p, SDL_Surface* screen, Uint32 status);
 /* Should be drawn into vscreen240 */
 int DrawPlayerGizmos(Player* p, SDL_Surface* screen);
 
@@ -97,17 +95,16 @@ int InitPlayer(Player* p)
     p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
     p->checkBbox = calcCheckBbox(p);
     p->runCount = 0;
-    p->isDarkWorld = SDL_FALSE;
-    p->isCutscene = SDL_FALSE;
-
     return 0;
 }
 
-void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad)
+void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* status)
 {
+	SDL_bool isCutscene = CheckFlag(*status, STATUS_IS_CUTSCENE);
+	SDL_bool isDarkWorld = CheckFlag(*status, STATUS_IS_DARK_WORLD);
 	/* STUB just don't update player when in cutscene */
 	/* consider using fsm instead for this */
-	if (p->isCutscene) return;
+	if (isCutscene) return;
 
     /* handle inputs */
     /* TODO make alias checking less verbose */
@@ -115,11 +112,11 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad)
     int moveSpeed;
     if (p->isRunning)
     {
-    	if (p->runCount < 10) moveSpeed = (p->isDarkWorld)? PLAYER_RUN_START_SPEED_DW : PLAYER_RUN_START_SPEED_LW;
-    	else if (p->runCount > 60) moveSpeed = (p->isDarkWorld)? PLAYER_RUN_LONG_SPEED_DW : PLAYER_RUN_LONG_SPEED_LW;
-    	else moveSpeed = (p->isDarkWorld)? PLAYER_RUN_SPEED_DW : PLAYER_RUN_SPEED_LW;
+    	if (p->runCount < 10) moveSpeed = (isDarkWorld)? PLAYER_RUN_START_SPEED_DW : PLAYER_RUN_START_SPEED_LW;
+    	else if (p->runCount > 60) moveSpeed = (isDarkWorld)? PLAYER_RUN_LONG_SPEED_DW : PLAYER_RUN_LONG_SPEED_LW;
+    	else moveSpeed = (isDarkWorld)? PLAYER_RUN_SPEED_DW : PLAYER_RUN_SPEED_LW;
     }
-    else moveSpeed = (p->isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
+    else moveSpeed = (isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
     Vec2 dir = (Vec2){0};
     if (CheckFlag(vPad, VKEY_DOWN_HELD)) dir.y = 1;
     if (CheckFlag(vPad, VKEY_UP_HELD)) dir.y = -1;
@@ -215,8 +212,10 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad)
         /* STUB */
         if (RectCheckCollisions(p->checkBbox, room->interactables[i]) && CheckFlag(vPad, VKEY_ACCEPT))
         {
-        	p->isCutscene = SDL_TRUE;
+        	SetFlag(status, STATUS_IS_CUTSCENE);
+        	p->animFrame = 0;
         	tb->shouldDraw = SDL_TRUE;
+        	isMoving = SDL_FALSE;
         }
     }
 
@@ -250,14 +249,15 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad)
     }
 }
 
-int DrawPlayer(Player* p, SDL_Surface* screen)
+int DrawPlayer(Player* p, SDL_Surface* screen, Uint32 status)
 {
+	SDL_bool isDarkWorld = CheckFlag(status, STATUS_IS_DARK_WORLD);
     SDL_Rect srcRect = (SDL_Rect){
         p->animFrame*PLAYER_SPRITE_WIDTH, p->facing*PLAYER_SPRITE_HEIGHT,
         PLAYER_SPRITE_WIDTH, PLAYER_SPRITE_HEIGHT
     };
     /* TEMP this probably should not be reassigned each frame */
-    SDL_Surface* sprite = (p->isDarkWorld)? p->dwSprite : p->lwSprite;
+    SDL_Surface* sprite = (isDarkWorld)? p->dwSprite : p->lwSprite;
     int err = BlitSurfaceCoords(sprite, &srcRect, screen, p->pos);
     return err;
 }

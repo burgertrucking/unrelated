@@ -210,11 +210,24 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     for (i = 0; i < room->interactablesLen; ++i)
     {
         /* STUB */
-        if (RectCheckCollisions(p->checkBbox, room->interactables[i]) && CheckFlag(vPad, VKEY_ACCEPT))
+        Interactable* obj = &room->interactables[i];
+        if (RectCheckCollisions(p->checkBbox, obj->bbox) && CheckFlag(vPad, VKEY_ACCEPT))
         {
         	SetFlag(status, STATUS_IS_CUTSCENE);
         	p->animFrame = 0;
         	tb->shouldDraw = SDL_TRUE;
+        	if (obj->msgsLen == 0)
+        	{
+        		printf("WARNING: UpdatePlayer: Interactable %i has no messages, falling back to default\n", i);
+        		tb->msgToDraw = -1;
+        	}
+        	else
+        	{
+	        	SDL_bool maxChecks = obj->checkCount >= obj->msgsLen;
+	        	if (maxChecks) printf("DEBUG: UpdatePlayer: max checks on interactable %i\n", i);
+	        	tb->msgToDraw = (maxChecks)? obj->msgs[obj->msgsLen] : obj->msgs[obj->checkCount];
+	        	++obj->checkCount;
+        	}
         	isMoving = SDL_FALSE;
         }
     }

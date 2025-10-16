@@ -10,7 +10,9 @@ enum
     TILE_SIZE = 20,
     MAX_TILE_DIM = 64, /* square this for total amount of tiles */
     MAX_WALLS = 64,
+    MAX_ROOM_MESSAGES = 64,
     MAX_INTERACTABLES = 64,
+    MAX_INTERACTABLE_CHECKS = 10,
 };
 
 typedef enum RoomSheetType
@@ -30,20 +32,37 @@ typedef struct RoomSheet
     RoomSheetType type;
 } RoomSheet;
 
+typedef struct Interactable
+{
+    Rect bbox; /* nonsolids have a bbox of (0, 0, 0, 0) */
+    int msgs[MAX_INTERACTABLE_CHECKS];
+    int msgsLen;
+    int checkCount;
+} Interactable;
+
+typedef struct RoomMessage
+{
+    String msg;
+    int next; /* -1 means textbox closes after this message */
+} RoomMessage;
+
 typedef struct Room
 {
     Vec2 size; /* in tiles */
     SDL_Surface* surface; /* all tiles are drawn to this surface upon init */
     RoomSheet sheet;
+    RoomMessage msgs[MAX_ROOM_MESSAGES];
     Tile tiles[MAX_TILE_DIM][MAX_TILE_DIM];
     Rect walls[MAX_WALLS];
-    Rect interactables[MAX_INTERACTABLES]; /* TEMP just a rect need to code the interacting part */
+    Interactable interactables[MAX_INTERACTABLES];
     int tilesLen;
     int wallsLen;
     int interactablesLen;
+    /* NOTE: length of msgs is not currently tracked */
 } Room;
 
 int InitRoom(Room* r, const char* sheetFile, RoomSheetType sheetType);
+int DrawRoom(Room* r, SDL_Surface* screen);
 int DrawRoomGizmos(Room* r, SDL_Surface* screen);
 
 #endif /* ROOM_H */
@@ -95,7 +114,10 @@ int DrawRoomGizmos(Room* r, SDL_Surface* screen)
     for (i = 0; i < r->interactablesLen; ++i)
     {
         /* TEMP draw solid pink rectangles the size of each interactable */
-        SDL_Rect bboxGfx = (SDL_Rect){ r->interactables[i].x, r->interactables[i].y, r->interactables[i].w, r->interactables[i].h };
+        SDL_Rect bboxGfx = (SDL_Rect){
+            r->interactables[i].bbox.x, r->interactables[i].bbox.y,
+            r->interactables[i].bbox.w, r->interactables[i].bbox.h
+        };
         err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 255, 128, 128));
         if (err) return err;
     }

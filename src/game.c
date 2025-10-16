@@ -115,6 +115,7 @@ int InitGame(GameState* state)
     err = InitTextbox(&state->textbox);
     /* TEMP init room walls (InitRoom() doesn't handle this) */
     /* NOTE though these sizes are very close to exact, they are still too fat for the player to fit through */
+    state->room = (Room){0}; /* zero initialise room to prevent UB */
     state->room.wallsLen = 16;
     state->room.walls[0] = (Rect){ 69, 123, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
     state->room.walls[1] = (Rect){ 69, 154, 1.9f*TILE_SIZE, 0.8f*TILE_SIZE };
@@ -135,9 +136,18 @@ int InitGame(GameState* state)
     /* TEMP init room interactables */
     /* only some of them used for testing */
     state->room.interactablesLen = 3;
-    state->room.interactables[0] = (Rect){ 211, 52, 0.9473684*TILE_SIZE, 0.9*TILE_SIZE };
-    state->room.interactables[1] = (Rect){ 103, 89, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
-    state->room.interactables[2] = (Rect){ 167, 92, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
+    state->room.interactables[0].bbox = (Rect){ 211, 52, 0.9473684*TILE_SIZE, 0.9*TILE_SIZE };
+    state->room.interactables[0].msgsLen = 1;
+    state->room.interactables[0].msgs[0] = 0;
+    state->room.msgs[0].msg = (String){ "* This is a test string", sizeof("* This is a test string")};
+    state->room.msgs[0].next = 1;
+    state->room.msgs[1].msg = (String){ "* With two boxes", sizeof("* With two boxes")};
+    state->room.msgs[1].next = -1;
+    state->room.interactables[0].msgs[1] = 2;
+    state->room.msgs[2].msg = (String){ "* I checked it again mom", sizeof("* I checked it again mom")};
+    state->room.msgs[2].next = -1;
+    state->room.interactables[1].bbox = (Rect){ 103, 89, 0.55*TILE_SIZE, 0.368421*TILE_SIZE };
+    state->room.interactables[2].bbox = (Rect){ 167, 92, 0.9*TILE_SIZE, 0.45*TILE_SIZE };
     InitRoom(&state->room, "res/rip/bg/alphysclass.png", ROOM_SHEET_WHOLE);
 
     return err;
@@ -193,7 +203,7 @@ static int updateGame(GameState* state)
     handleEvents(state);
 
     UpdatePlayer(&state->player, &state->room, &state->textbox, state->vPad, &state->statusFlags);
-    UpdateTextbox(&state->textbox, state->vPad, &state->statusFlags);
+    UpdateTextbox(&state->textbox, state->room.msgs, state->vPad, &state->statusFlags);
 
     /* update quit timer */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))
@@ -231,7 +241,7 @@ static int drawGame(GameState* state)
     String frameTimeStr = (String) { ftstrData, 64 };
     if (CheckFlag(state->statusFlags, STATUS_DRAW_FPS))
         err = DrawText(frameTimeStr, &state->fonts, state->vScreen480, FONT_MAIN_DW, (Vec2){0});
-    err = DrawTextbox(&state->textbox, CheckFlag(state->statusFlags, STATUS_IS_DARK_WORLD), &state->fonts, state->vScreen480);
+    err = DrawTextbox(&state->textbox, state->room.msgs, CheckFlag(state->statusFlags, STATUS_IS_DARK_WORLD), &state->fonts, state->vScreen480);
     /* TEMP draw quitting if escape is held */
     /* TODO add and use the quitting font, or just hardcode it as an image to draw */
     if (CheckFlag(state->statusFlags, STATUS_QUIT_KEY_HELD))

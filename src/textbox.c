@@ -59,7 +59,8 @@ void UpdateTextbox(Textbox* tb, RoomMessage* msgs, Uint32 vPad, Uint32* status)
         if (tb->charsDrawn >= msg.len)
         {
             /* TODO add press C to skip text */
-            if (CheckFlag(vPad, VKEY_ACCEPT) || CheckFlag(vPad, VKEY_ACCEPT_A) || CheckFlag(vPad, VKEY_ACCEPT_B))
+            if (CheckFlag(vPad, VKEY_ACCEPT) || CheckFlag(vPad, VKEY_ACCEPT_A) || CheckFlag(vPad, VKEY_ACCEPT_B)
+                || CheckFlag(vPad, VKEY_MENU_HELD) || CheckFlag(vPad, VKEY_MENU_A_HELD) || CheckFlag(vPad, VKEY_MENU_B_HELD))
             {
                 if (next >= 0) tb->msgToDraw = next;
                 else
@@ -73,7 +74,8 @@ void UpdateTextbox(Textbox* tb, RoomMessage* msgs, Uint32 vPad, Uint32* status)
         else
         {
             /* STUB */
-            if (CheckFlag(vPad, VKEY_CANCEL) || CheckFlag(vPad, VKEY_CANCEL_A) || CheckFlag(vPad, VKEY_CANCEL_B))
+            if (CheckFlag(vPad, VKEY_CANCEL) || CheckFlag(vPad, VKEY_CANCEL_A) || CheckFlag(vPad, VKEY_CANCEL_B)
+                || CheckFlag(vPad, VKEY_MENU_HELD) || CheckFlag(vPad, VKEY_MENU_A_HELD) || CheckFlag(vPad, VKEY_MENU_B_HELD))
                 tb->charsDrawn = msg.len;
             else ++tb->charsDrawn; /* intentionally increment to 1 when first rendering, otherwise box will be blank */
         }

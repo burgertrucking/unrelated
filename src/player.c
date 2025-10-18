@@ -133,28 +133,24 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     {
 	    if (RectCheckCollisions(newBboxX, room->walls[i]))
 	    {
-	    	if (dir.x == -1)
+	    	if (dir.x < 0)
 	    	{
 	    		newPos.x = room->walls[i].x + room->walls[i].w;
-	    		p->facing = PLAYER_FACE_LEFT;
 	    	}
-	    	else if (dir.x == 1)
+	    	else if (dir.x > 0)
 	    	{
 	    		newPos.x = room->walls[i].x - p->bbox.w;
-	    		p->facing = PLAYER_FACE_RIGHT;
     		}
 	    }
 	    if (RectCheckCollisions(newBboxY, room->walls[i]))
 		{
-	    	if (dir.y == -1)
+	    	if (dir.y < 0)
 	    	{
 				newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
-	    		p->facing = PLAYER_FACE_DOWN;
 	    	}
-	    	else if (dir.y == 1)
+	    	else if (dir.y > 0)
 	    	{
 				newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
-	    		p->facing = PLAYER_FACE_UP;
 	    	}
 	    }
     }
@@ -210,25 +206,28 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     for (i = 0; i < room->interactablesLen; ++i)
     {
         Interactable* obj = &room->interactables[i];
-        if (RectCheckCollisions(p->checkBbox, obj->bbox) && CheckFlag(vPad, VKEY_ACCEPT))
+        if (RectCheckCollisions(p->checkBbox, obj->bbox))
         {
-        	SetFlag(status, STATUS_IS_CUTSCENE);
-        	p->animFrame = 0;
-        	tb->shouldDraw = SDL_TRUE;
-        	if (obj->msgsLen == 0)
-        	{
-        		printf("WARNING: UpdatePlayer: Interactable %i has no messages, falling back to default\n", i);
-        		tb->msgToDraw = -1;
-        	}
-        	else
-        	{
-                tb->msgToDraw = obj->msgs[obj->checkCount];
-                SDL_bool maxChecks = obj->checkCount >= obj->msgsLen - 1;
-                if (maxChecks) printf("DEBUG: UpdatePlayer: max checks (%i) on interactable %i\n", obj->msgsLen, i);
-                else ++obj->checkCount;
-        	}
-        	isMoving = SDL_FALSE;
-        }
+        	if (CheckFlag(vPad, VKEY_ACCEPT) || CheckFlag(vPad, VKEY_ACCEPT_A) || CheckFlag(vPad, VKEY_ACCEPT_B))
+	        {
+	        	SetFlag(status, STATUS_IS_CUTSCENE);
+	        	p->animFrame = 0;
+	        	tb->shouldDraw = SDL_TRUE;
+	        	if (obj->msgsLen == 0)
+	        	{
+	        		printf("WARNING: UpdatePlayer: Interactable %i has no messages, falling back to default\n", i);
+	        		tb->msgToDraw = -1;
+	        	}
+	        	else
+	        	{
+	                tb->msgToDraw = obj->msgs[obj->checkCount];
+	                SDL_bool maxChecks = obj->checkCount >= obj->msgsLen - 1;
+	                if (maxChecks) printf("DEBUG: UpdatePlayer: max checks (%i) on interactable %i\n", obj->msgsLen, i);
+	                else ++obj->checkCount;
+	        	}
+	        	isMoving = SDL_FALSE;
+	        }
+	    }
     }
 
 	/* handle animations */

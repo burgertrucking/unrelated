@@ -143,7 +143,7 @@ int InitGame(GameState* state)
     state->room.interactables[0].msgs[1] = 9;
     state->room.msgs[0].msg = (String){ "* (You checked the time.)", 99 };
     state->room.msgs[0].next = 1;
-    state->room.msgs[1].msg = (String){ "* (... It seems to not be time\n  for class.", 99 };
+    state->room.msgs[1].msg = (String){ "* (... It seems to not be time\n  for class.)", 99 };
     state->room.msgs[1].next = -1;
     state->room.msgs[9].msg = (String){ "* (You wonder if they even hold\n  classes here.)", 99 };
     state->room.msgs[9].next = -1;

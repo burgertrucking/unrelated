@@ -30,6 +30,7 @@ float Vec2DotProduct(Vec2 a, Vec2 b);
 SDL_bool Vec2Equals(Vec2 a, Vec2 b);
 
 /* string type with length */
+/* NOTE: Consider adding a constructor function (eg. automatically calculates len) */
 typedef struct String
 {
     char* data;

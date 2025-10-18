@@ -29,7 +29,7 @@ int DrawTextbox(Textbox* tb, RoomMessage* msgs, SDL_bool isDW, Fonts* fnt, SDL_S
 #include "input.c"
 #include "statusflag.h"
 
-static const String errorMsg = (String){ "You FUCKED up the room messages\nIDIOT", 69 };
+static const String errorMsg = (String){ "You FUCKED up the room messages\nIDIOT", 37 };
 
 int InitTextbox(Textbox* tb)
 {
@@ -56,11 +56,10 @@ void UpdateTextbox(Textbox* tb, RoomMessage* msgs, Uint32 vPad, Uint32* status)
             msg = msgs[tb->msgToDraw].msg;
             next = msgs[tb->msgToDraw].next;
         }
+        /* NOTE assumes len is exact, doesn't do any null character checking */
         if (tb->charsDrawn >= msg.len)
         {
-            /* TODO add press C to skip text */
-            if (CheckFlag(vPad, VKEY_ACCEPT) || CheckFlag(vPad, VKEY_ACCEPT_A) || CheckFlag(vPad, VKEY_ACCEPT_B)
-                || CheckFlag(vPad, VKEY_MENU_HELD) || CheckFlag(vPad, VKEY_MENU_A_HELD) || CheckFlag(vPad, VKEY_MENU_B_HELD))
+            if (CheckVInput(vPad, VKEY_ACCEPT) || CheckVInput(vPad, VKEY_MENU_HELD))
             {
                 if (next >= 0) tb->msgToDraw = next;
                 else
@@ -73,10 +72,7 @@ void UpdateTextbox(Textbox* tb, RoomMessage* msgs, Uint32 vPad, Uint32* status)
         }
         else
         {
-            /* STUB */
-            if (CheckFlag(vPad, VKEY_CANCEL) || CheckFlag(vPad, VKEY_CANCEL_A) || CheckFlag(vPad, VKEY_CANCEL_B)
-                || CheckFlag(vPad, VKEY_MENU_HELD) || CheckFlag(vPad, VKEY_MENU_A_HELD) || CheckFlag(vPad, VKEY_MENU_B_HELD))
-                tb->charsDrawn = msg.len;
+            if (CheckVInput(vPad, VKEY_CANCEL) || CheckVInput(vPad, VKEY_MENU_HELD)) tb->charsDrawn = msg.len;
             else ++tb->charsDrawn; /* intentionally increment to 1 when first rendering, otherwise box will be blank */
         }
     }

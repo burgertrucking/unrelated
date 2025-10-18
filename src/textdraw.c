@@ -81,6 +81,7 @@ int DrawText(String msg, Fonts* fontImgs, SDL_Surface* screen, FontType font, Ve
     unsigned int i;
     Vec2 charPos;
     /* null character check allows for rendering strings shorter than their buffer size (eg. when drawing fps) */
+    /* TODO log when null character check goes off */
     for (i = 0, charPos.x = startX, charPos.y = pos.y; i < msg.len && msg.data[i] != '\0'; ++i)
     {
         if (msg.data[i] != '\n')

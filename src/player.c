@@ -107,8 +107,7 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	if (isCutscene) return;
 
     /* handle inputs */
-    /* TODO make alias checking less verbose */
-    p->isRunning = (CheckFlag(vPad, VKEY_CANCEL_HELD) || CheckFlag(vPad, VKEY_CANCEL_A_HELD) || CheckFlag(vPad, VKEY_CANCEL_B_HELD));
+    p->isRunning = CheckVInput(vPad, VKEY_CANCEL_HELD);
     int moveSpeed;
     if (p->isRunning)
     {
@@ -118,10 +117,10 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     }
     else moveSpeed = (isDarkWorld)? PLAYER_WALK_SPEED_DW : PLAYER_WALK_SPEED_LW;
     Vec2 dir = (Vec2){0};
-    if (CheckFlag(vPad, VKEY_DOWN_HELD)) dir.y = 1;
-    if (CheckFlag(vPad, VKEY_UP_HELD)) dir.y = -1;
-    if (CheckFlag(vPad, VKEY_RIGHT_HELD)) dir.x = 1;
-    if (CheckFlag(vPad, VKEY_LEFT_HELD)) dir.x = -1;
+    if (CheckVInput(vPad, VKEY_DOWN_HELD)) dir.y = 1;
+    if (CheckVInput(vPad, VKEY_UP_HELD)) dir.y = -1;
+    if (CheckVInput(vPad, VKEY_RIGHT_HELD)) dir.x = 1;
+    if (CheckVInput(vPad, VKEY_LEFT_HELD)) dir.x = -1;
 
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;
@@ -208,7 +207,7 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
         Interactable* obj = &room->interactables[i];
         if (RectCheckCollisions(p->checkBbox, obj->bbox))
         {
-        	if (CheckFlag(vPad, VKEY_ACCEPT) || CheckFlag(vPad, VKEY_ACCEPT_A) || CheckFlag(vPad, VKEY_ACCEPT_B))
+			if (CheckVInput(vPad, VKEY_ACCEPT))
 	        {
 	        	SetFlag(status, STATUS_IS_CUTSCENE);
 	        	p->animFrame = 0;

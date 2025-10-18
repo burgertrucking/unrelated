@@ -130,28 +130,43 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     int i;
     for (i = 0; i < room->wallsLen; ++i)
     {
-	    if (RectCheckCollisions(newBboxX, room->walls[i]))
-	    {
-	    	if (dir.x < 0)
-	    	{
-	    		newPos.x = room->walls[i].x + room->walls[i].w;
-	    	}
-	    	else if (dir.x > 0)
-	    	{
-	    		newPos.x = room->walls[i].x - p->bbox.w;
-    		}
-	    }
-	    if (RectCheckCollisions(newBboxY, room->walls[i]))
+		SDL_bool hitX = RectCheckCollisions(newBboxX, room->walls[i]);
+		SDL_bool hitY = RectCheckCollisions(newBboxY, room->walls[i]);
+		if (hitX || hitY)
 		{
-	    	if (dir.y < 0)
-	    	{
-				newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
-	    	}
-	    	else if (dir.y > 0)
-	    	{
-				newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
-	    	}
-	    }
+			if (hitX)
+		    {
+			if (dir.x < 0) newPos.x = room->walls[i].x + room->walls[i].w;
+			else if (dir.x > 0) newPos.x = room->walls[i].x - p->bbox.w;
+		    }
+		    if (hitY)
+			{
+				if (dir.y < 0) newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
+				else if (dir.y > 0) newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
+		    }
+		}
+		/* edge case for corner collisions that aren't detected when axes are split */
+		/* unused because corner teleportation is fun */
+		/*
+	    else
+	    {
+		    Rect newBbox = (Rect){ newPos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+			if (RectCheckCollisions(newBbox, room->walls[i]))
+		    {
+				switch (p->facing)
+				{
+					case PLAYER_FACE_DOWN:
+					case PLAYER_FACE_UP:
+						newPos.x = p->pos.x;
+					break;
+					case PLAYER_FACE_RIGHT:
+					case PLAYER_FACE_LEFT:
+						newPos.y = p->pos.y;
+					break;
+				}
+			}
+		}
+		*/
     }
 	if (!Vec2Equals(p->pos, newPos))
 	{

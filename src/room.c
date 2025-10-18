@@ -10,9 +10,10 @@ enum
     TILE_SIZE = 20,
     MAX_TILE_DIM = 64, /* square this for total amount of tiles */
     MAX_WALLS = 64,
+    MAX_SLOPES = 32,
     MAX_ROOM_MESSAGES = 64,
     MAX_INTERACTABLES = 64,
-    MAX_INTERACTABLE_CHECKS = 10,
+    MAX_INTERACTABLE_CHECKS = 8,
 };
 
 typedef enum RoomSheetType
@@ -31,6 +32,20 @@ typedef struct RoomSheet
     SDL_Surface* img;
     RoomSheetType type;
 } RoomSheet;
+
+/* defines which corner the slope's right angle is located */
+typedef enum SlopeType
+{
+    SLOPE_TOP_LEFT,
+    SLOPE_TOP_RIGHT,
+    SLOPE_BOTTOM_LEFT,
+    SLOPE_BOTTOM_RIGHT,
+} SlopeType;
+typedef struct Slope
+{
+    Vec2 pos;
+    SlopeType corner;
+} Slope;
 
 typedef struct Interactable
 {
@@ -54,9 +69,11 @@ typedef struct Room
     RoomMessage msgs[MAX_ROOM_MESSAGES];
     Tile tiles[MAX_TILE_DIM][MAX_TILE_DIM];
     Rect walls[MAX_WALLS];
+    Slope slopes[MAX_SLOPES];
     Interactable interactables[MAX_INTERACTABLES];
     int tilesLen;
     int wallsLen;
+    int slopesLen;
     int interactablesLen;
     /* NOTE: length of msgs is not currently tracked */
 } Room;
@@ -119,6 +136,14 @@ int DrawRoomGizmos(Room* r, SDL_Surface* screen)
             r->interactables[i].bbox.w, r->interactables[i].bbox.h
         };
         err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 255, 128, 128));
+        if (err) return err;
+    }
+    for (i = 0; i < r->slopesLen; ++i)
+    {
+        /* TEMP draw solid grey rectangles the size of each wall */
+        /* TODO replace with triangle graphic */
+        SDL_Rect triGfx = (SDL_Rect){ r->slopes[i].pos.x, r->slopes[i].pos.y, TILE_SIZE, TILE_SIZE };
+        err = SDL_FillRect(screen, &triGfx, SDL_MapRGB(screen->format, 127, 127, 127));
         if (err) return err;
     }
 

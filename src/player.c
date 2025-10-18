@@ -20,6 +20,7 @@ typedef struct Player {
     unsigned int facing;
 	 /* TODO move to a bitflag with other bools */
     SDL_bool isRunning;
+    SDL_bool noclip; /* toggled in game.c with debug enabled mode */
 } Player;
 
 int InitPlayer(Player* p);
@@ -125,48 +126,62 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;
     Vec2 newPos = Vec2Add(p->pos, Vec2Scale(dir, moveSpeed));
-    Rect newBboxX = (Rect){ newPos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
-    Rect newBboxY = (Rect){ p->pos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
     int i;
-    for (i = 0; i < room->wallsLen; ++i)
+    if (!p->noclip)
     {
-		SDL_bool hitX = RectCheckCollisions(newBboxX, room->walls[i]);
-		SDL_bool hitY = RectCheckCollisions(newBboxY, room->walls[i]);
-		if (hitX || hitY)
-		{
-			if (hitX)
-		    {
-			if (dir.x < 0) newPos.x = room->walls[i].x + room->walls[i].w;
-			else if (dir.x > 0) newPos.x = room->walls[i].x - p->bbox.w;
-		    }
-		    if (hitY)
-			{
-				if (dir.y < 0) newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
-				else if (dir.y > 0) newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
-		    }
-		}
-		/* edge case for corner collisions that aren't detected when axes are split */
-		/* unused because corner teleportation is fun */
-		/*
-	    else
+	    Rect newBbox = (Rect){ newPos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+	    /* split bboxes into xy components for granularised collision detection */
+	    Rect newBboxX = (Rect){ newPos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+	    Rect newBboxY = (Rect){ p->pos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
+	    for (i = 0; i < room->wallsLen; ++i)
 	    {
-		    Rect newBbox = (Rect){ newPos.x, newPos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT };
-			if (RectCheckCollisions(newBbox, room->walls[i]))
-		    {
-				switch (p->facing)
+			SDL_bool hitX = RectCheckCollisions(newBboxX, room->walls[i]);
+			SDL_bool hitY = RectCheckCollisions(newBboxY, room->walls[i]);
+			if (hitX || hitY)
+			{
+				if (hitX)
+			    {
+				if (dir.x < 0) newPos.x = room->walls[i].x + room->walls[i].w;
+				else if (dir.x > 0) newPos.x = room->walls[i].x - p->bbox.w;
+			    }
+			    if (hitY)
 				{
-					case PLAYER_FACE_DOWN:
-					case PLAYER_FACE_UP:
-						newPos.x = p->pos.x;
-					break;
-					case PLAYER_FACE_RIGHT:
-					case PLAYER_FACE_LEFT:
-						newPos.y = p->pos.y;
-					break;
+					if (dir.y < 0) newPos.y = room->walls[i].y + room->walls[i].h - PLAYER_BBOX_Y_OFFSET;
+					else if (dir.y > 0) newPos.y = room->walls[i].y - p->bbox.h - PLAYER_BBOX_Y_OFFSET;
+			    }
+			}
+			/* edge case for corner collisions that aren't detected when axes are split */
+			/* unused because corner teleportation is fun */
+			/*
+		    else
+		    {
+				if (RectCheckCollisions(newBbox, room->walls[i]))
+			    {
+					switch (p->facing)
+					{
+						case PLAYER_FACE_DOWN:
+						case PLAYER_FACE_UP:
+							newPos.x = p->pos.x;
+						break;
+						case PLAYER_FACE_RIGHT:
+						case PLAYER_FACE_LEFT:
+							newPos.y = p->pos.y;
+						break;
+					}
 				}
 			}
-		}
-		*/
+			*/
+	    }
+	    for (i = 0; i < room->slopesLen; ++i)
+	    {
+	    	/* NOTE unsure if this bbox should be baked directly into the slope struct or calculated at runtime here */
+	    	Rect sloperect = (Rect){ room->slopes[i].pos.x, room->slopes[i].pos.y, TILE_SIZE, TILE_SIZE };
+	    	if (RectCheckCollisions(newBbox, sloperect))
+	    	{
+		    	/* STUB */
+	    		printf("UpdatePlayer: detected collision with slope %i (type %i) at %.2f, %.2f\n", i, room->slopes[i].corner, room->slopes[i].pos.x, room->slopes[i].pos.y);
+	    	}
+	    }
     }
 	if (!Vec2Equals(p->pos, newPos))
 	{
@@ -292,7 +307,9 @@ int DrawPlayerGizmos(Player* p, SDL_Surface* screen)
     /* TEMP creating rectangle of bbox */
     SDL_Rect bboxGfx = (SDL_Rect){ p->bbox.x, p->bbox.y, p->bbox.w, p->bbox.h };
     SDL_Rect checkGfx = (SDL_Rect){ p->checkBbox.x, p->checkBbox.y, p->checkBbox.w, p->checkBbox.h };
-    int err = SDL_FillRect(screen, &bboxGfx, SDL_MapRGB(screen->format, 0, 255, 0));
+    /* bbox is grey if noclip, green if collisions enabled */
+	Uint32 bboxColour = (p->noclip)?  SDL_MapRGB(screen->format, 220, 220, 220) : SDL_MapRGB(screen->format, 0, 255, 0);
+    int err = SDL_FillRect(screen, &bboxGfx, bboxColour);
     err = SDL_FillRect(screen, &checkGfx, SDL_MapRGB(screen->format, 0, 255, 255));
     return err;
 }

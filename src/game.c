@@ -133,6 +133,10 @@ int InitGame(GameState* state)
     state->room.walls[13] = (Rect){ 22, 3, 13.96f*TILE_SIZE, 0.95f*TILE_SIZE };
     state->room.walls[14] = (Rect){ 269, 52, TILE_SIZE, TILE_SIZE };
     state->room.walls[15] = (Rect){ 38, 52, 9.89f*TILE_SIZE, TILE_SIZE };
+    /* TEMP init room slopes */
+    /* these weren't in the original game and are only here for testing */
+    state->room.slopesLen = 4;
+    state->room.slopes[0] = (Slope){ (Vec2){ 265, 198 }, SLOPE_BOTTOM_RIGHT };
     /* TEMP init room interactables */
     /* only some of them used for testing */
     state->room.interactablesLen = 5;
@@ -355,6 +359,13 @@ static void handleEvents(GameState* state)
                     break;
                     case SDLK_g:
                         ToggleFlag(&state->statusFlags, STATUS_IS_DARK_WORLD);
+                    break;
+                    case SDLK_p:
+                        printf("Player position: %.2f, %.2f\n", state->player.pos.x, state->player.pos.y);
+                    break;
+                    case SDLK_LEFTBRACKET:
+                        state->player.noclip = !state->player.noclip;
+                        printf("Player noclip enabled\n");
                     break;
                     /* TODO make these scaling options in the settings rather than hardcoded keypresses */
                     case SDLK_1:

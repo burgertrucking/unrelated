@@ -34,6 +34,7 @@ typedef struct RoomSheet
 } RoomSheet;
 
 /* defines which corner the slope's right angle is located */
+/* (hypotenuse is opposite this point) */
 typedef enum SlopeType
 {
     SLOPE_TOP_LEFT,
@@ -65,6 +66,7 @@ typedef struct Room
 {
     Vec2 size; /* in tiles */
     SDL_Surface* surface; /* all tiles are drawn to this surface upon init */
+    SDL_Surface* slopespr;
     RoomSheet sheet;
     RoomMessage msgs[MAX_ROOM_MESSAGES];
     Tile tiles[MAX_TILE_DIM][MAX_TILE_DIM];
@@ -94,16 +96,21 @@ int InitRoom(Room* r, const char* sheetFile, RoomSheetType sheetType)
     int err = 0;
 
     r->sheet.img = LoadImage(sheetFile);
+    r->slopespr = LoadImage("res-temp/corner-tiles.png");
     r->sheet.type = sheetType;
-    if (r->sheet.type== ROOM_SHEET_WHOLE)
+    if (r->sheet.type == ROOM_SHEET_WHOLE)
     {
         r->surface = r->sheet.img;
         r->tilesLen = 0;
     }
+    else if (!r->sheet.img || !r->slopespr)
+    {
+        err = 1;
+    }
     else
     {
         printf("WARNING: InitRoom() sheet type tilemap currently unhandled\n");
-        err = 1;
+        err = 2;
         return err;
     }
 
@@ -140,10 +147,8 @@ int DrawRoomGizmos(Room* r, SDL_Surface* screen)
     }
     for (i = 0; i < r->slopesLen; ++i)
     {
-        /* TEMP draw solid grey rectangles the size of each wall */
-        /* TODO replace with triangle graphic */
-        SDL_Rect triGfx = (SDL_Rect){ r->slopes[i].pos.x, r->slopes[i].pos.y, TILE_SIZE, TILE_SIZE };
-        err = SDL_FillRect(screen, &triGfx, SDL_MapRGB(screen->format, 127, 127, 127));
+        SDL_Rect ssprRect = (SDL_Rect){ r->slopes[i].corner*TILE_SIZE, 0, TILE_SIZE, TILE_SIZE };
+        err = BlitSurfaceCoords(r->slopespr, &ssprRect, screen, r->slopes[i].pos);
         if (err) return err;
     }
 

@@ -11,6 +11,9 @@ SDL_Surface* LoadImage(const char* file);
 int BlitSurfaceCoords(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec2 pos);
 /* Scale a surface then blit it. Does not alpha blend */
 int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec2 pos, Vec2 scale);
+/* Check if two line segments (defined by their endpoints) intersect */
+/* NOTE: May fit better in types.c */
+SDL_bool LineCheckCollisions(Vec2 a1, Vec2 b1, Vec2 a2, Vec2 b2);
 
 #endif
 
@@ -52,6 +55,13 @@ int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec
     SDL_Rect dstRect = (SDL_Rect){ pos.x, pos.y, w, h };
     /* NOTE using internal api since 1.2 doesn't have a SDL_BlitSurfaceScaled() equivalent */
     return SDL_SoftStretch(src, srcRect, dst, &dstRect);
+}
+
+SDL_bool LineCheckCollisions(Vec2 a1, Vec2 b1, Vec2 a2, Vec2 b2)
+{
+    /* STUB */
+    printf("DEBUG: LineCheckCollisions: this always returns true\n");
+    return true;
 }
 
 #endif

@@ -33,7 +33,8 @@ static const String errorMsg = (String){ "You FUCKED up the room messages\nIDIOT
 
 int InitTextbox(Textbox* tb)
 {
-    tb->graphic = LoadImage("temp-textbox.png");
+    /* TEMP */
+    tb->graphic = LoadImage("res-temp/textbox.png");
     if (!tb->graphic) return 1;
     tb->charsDrawn = 0;
     tb->shouldDraw = SDL_FALSE;

@@ -176,33 +176,43 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	    for (i = 0; i < room->slopesLen; ++i)
 	    {
 	    	/* NOTE unsure if this bbox should be baked directly into the slope struct or calculated at runtime here */
-	    	Rect sloperect = (Rect){ room->slopes[i].pos.x, room->slopes[i].pos.y, TILE_SIZE, TILE_SIZE };
+	    	Slope s = room->slopes[i];
+	    	Rect sloperect = (Rect){ s.pos.x, s.pos.y, TILE_SIZE, TILE_SIZE };
+	    	/* STUB collision checking */
+	    	/* TODO move to its own function (in room.c or here?) */
 	    	if (RectCheckCollisions(newBbox, sloperect))
 	    	{
-		    	/* STUB */
-	    		printf("UpdatePlayer: detected collision with slope %i (type %i) at %.2f, %.2f\n", i, room->slopes[i].corner, room->slopes[i].pos.x, room->slopes[i].pos.y);
+	    		printf("UpdatePlayer: detected bbox is in slope tile at <%.2f, %.2f>, with slope %i (type %i)\n", s.pos.x, s.pos.y, i, s.corner);
+	    		Vec2 hypA, hypB;
 	    		switch (room->slopes[i].corner)
 	    		{
-/* p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT }; */
 	    			case SLOPE_TOP_LEFT:
-	    			break;
-	    			case SLOPE_TOP_RIGHT:
+	    			case SLOPE_BOTTOM_RIGHT:
+	    				hypA.x = s.pos.x;
+	    				hypA.y = s.pos.y + TILE_SIZE;
+	    				hypB.x = s.pos.x + TILE_SIZE;
+	    				hypB.y = s.pos.y;
 	    			break;
 	    			case SLOPE_BOTTOM_LEFT:
-	    			break;
-	    			case SLOPE_BOTTOM_RIGHT:
-	    				switch (p->facing)
-	    				{
-	    					case PLAYER_FACE_RIGHT:
-	    						newPos.x = sloperect.x + TILE_SIZE/2;
-	    						newPos.y = sloperect.y + TILE_SIZE/2 - PLAYER_BBOX_Y_OFFSET;
-    						break;
-	    					case PLAYER_FACE_DOWN:
-    						break;
-	    					default:
-	    					break;
-	    				}
-	    			break;
+	    			case SLOPE_TOP_RIGHT:
+	    				hypA.x = s.pos.x;
+	    				hypA.y = s.pos.y;
+	    				hypB.x = s.pos.x + TILE_SIZE;
+	    				hypB.y = s.pos.y + TILE_SIZE;
+    				break;
+	    		}
+	    		/* currently hardcoed to handling bottom right collisions only */
+	    		/* (player bbox's right and bottom sides) */
+	    		Vec2 rightA = (Vec2){ newBbox.x + newBbox.w, newBbox.y };
+	    		Vec2 rightB = (Vec2){ newBbox.x + newBbox.w, newBbox.y + newBbox.h };
+	    		Vec2 bottomA = (Vec2){ newBbox.x, newBbox.y + newBbox.h };
+	    		Vec2 bottomB = (Vec2){ newBbox.x + newBbox.w, newBbox.y + newBbox.h };
+	    		SDL_bool rightCollided = LineCheckCollisions(hypA, hypB, rightA, rightB);
+	    		SDL_bool bottomCollided = LineCheckCollisions(hypA, hypB, bottomA, bottomB);
+	    		if (rightCollided && bottomCollided)
+	    		{
+	    			/* STUB sliding routine */
+	    			printf("bbox inside aforementioned triangle\n");
 	    		}
 	    	}
 	    }

@@ -136,7 +136,7 @@ int InitGame(GameState* state)
     /* TEMP init room slopes */
     /* these weren't in the original game and are only here for testing */
     state->room.slopesLen = 4;
-    state->room.slopes[0] = (Slope){ (Vec2){ 265, 198 }, SLOPE_BOTTOM_RIGHT };
+    state->room.slopes[0] = (Slope){ (Vec2){ 266, 198 }, SLOPE_BOTTOM_RIGHT };
     /* TEMP init room interactables */
     /* only some of them used for testing */
     state->room.interactablesLen = 5;

@@ -175,10 +175,10 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	    }
 	    for (i = 0; i < room->slopesLen; ++i)
 	    {
-	    	/* NOTE unsure if this bbox should be baked directly into the slope struct or calculated at runtime here */
 	    	Slope s = room->slopes[i];
+	    	/* NOTE unsure if this bbox should be baked directly into the slope struct or calculated at runtime here */
 	    	Rect sloperect = (Rect){ s.pos.x, s.pos.y, TILE_SIZE, TILE_SIZE };
-	    	/* STUB collision checking */
+	    	/* TEMP collision checking */
 	    	/* TODO move to its own function (in room.c or here?) */
 	    	if (RectCheckCollisions(newBbox, sloperect))
 	    	{
@@ -201,7 +201,7 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	    				hypB.y = s.pos.y + TILE_SIZE;
     				break;
 	    		}
-	    		/* currently hardcoed to handling bottom right collisions only */
+	    		/* TEMP currently hardcoed to handling bottom right collisions only */
 	    		/* (player bbox's right and bottom sides) */
 	    		Vec2 rightA = (Vec2){ newBbox.x + newBbox.w, newBbox.y };
 	    		Vec2 rightB = (Vec2){ newBbox.x + newBbox.w, newBbox.y + newBbox.h };
@@ -211,8 +211,23 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	    		SDL_bool bottomCollided = LineCheckCollisions(hypA, hypB, bottomA, bottomB);
 	    		if (rightCollided && bottomCollided)
 	    		{
-	    			/* STUB sliding routine */
-	    			printf("bbox inside aforementioned triangle\n");
+	    			/* TODO move to its own function, this is general enough to be used for the rectangle walls */
+
+	    			/* FIXME imperfect, when sliding along the slope player eventually ends up inside it at the end */
+
+	    			/* formula from https://youtu.be/oom6R-M2lvQ */
+	    			/* newdp = dp - N * (dp DOT n) */
+	    			/* or: newdp = Vec2Subtract(dp, Vec2Scale(N, Vec2DotProduct(dp, N))) */
+
+	    			if (p->facing == PLAYER_FACE_RIGHT || p->facing == PLAYER_FACE_DOWN) /* sliding isn't calculated when not facing slope */
+	    			{
+		    			Vec2 N = (Vec2){ -0.7071, -0.7071 }; /* normalised vector in northwest direction */
+		    			Vec2 newdp = Vec2Subtract(dp, Vec2Scale(N, Vec2DotProduct(dp, N)));
+		    			printf("bbox inside aforementioned triangle\n");
+		    			printf("dp = <%.2f, %.2f>\nnewdp = <%.2f, %.2f>\n", dp.x, dp.y, newdp.x, newdp.y);
+		    			Vec2 newdpScaled = Vec2Scale(newdp, 2); /* original game has you move faster on slopes */
+		    			newPos = Vec2Add(p->pos, newdpScaled);
+	    			}
 	    		}
 	    	}
 	    }

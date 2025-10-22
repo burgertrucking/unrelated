@@ -59,9 +59,15 @@ int BlitSurfaceScaled(SDL_Surface* src, SDL_Rect* srcRect, SDL_Surface* dst, Vec
 
 SDL_bool LineCheckCollisions(Vec2 a1, Vec2 b1, Vec2 a2, Vec2 b2)
 {
-    /* STUB */
-    printf("DEBUG: LineCheckCollisions: this always returns true\n");
-    return true;
+    /* copypasted from https://www.jeffreythompson.org/collision-detection/line-line.php */
+    /* see also https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line_segment */
+    float x1 = a1.x, y1 = a1.y;
+    float x2 = b1.x, y2 = b1.y;
+    float x3 = a2.x, y3 = a2.y;
+    float x4 = b2.x, y4 = b2.y;
+    float t = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    float u = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    return ((0 <= t && t <= 1) && (0 <= u && u <= 1));
 }
 
 #endif

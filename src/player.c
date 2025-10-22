@@ -125,7 +125,8 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 
     /* handle movement */
     SDL_bool isMoving = SDL_FALSE;
-    Vec2 newPos = Vec2Add(p->pos, Vec2Scale(dir, moveSpeed));
+    Vec2 dp = Vec2Scale(dir, moveSpeed);
+    Vec2 newPos = Vec2Add(p->pos, dp);
     int i;
     if (!p->noclip)
     {
@@ -180,6 +181,29 @@ void UpdatePlayer(Player* p, Room* room, Textbox* tb, Uint32 vPad, Uint32* statu
 	    	{
 		    	/* STUB */
 	    		printf("UpdatePlayer: detected collision with slope %i (type %i) at %.2f, %.2f\n", i, room->slopes[i].corner, room->slopes[i].pos.x, room->slopes[i].pos.y);
+	    		switch (room->slopes[i].corner)
+	    		{
+/* p->bbox = (Rect){ p->pos.x, p->pos.y + PLAYER_BBOX_Y_OFFSET, PLAYER_BBOX_WIDTH, PLAYER_BBOX_HEIGHT }; */
+	    			case SLOPE_TOP_LEFT:
+	    			break;
+	    			case SLOPE_TOP_RIGHT:
+	    			break;
+	    			case SLOPE_BOTTOM_LEFT:
+	    			break;
+	    			case SLOPE_BOTTOM_RIGHT:
+	    				switch (p->facing)
+	    				{
+	    					case PLAYER_FACE_RIGHT:
+	    						newPos.x = sloperect.x + TILE_SIZE/2;
+	    						newPos.y = sloperect.y + TILE_SIZE/2 - PLAYER_BBOX_Y_OFFSET;
+    						break;
+	    					case PLAYER_FACE_DOWN:
+    						break;
+	    					default:
+	    					break;
+	    				}
+	    			break;
+	    		}
 	    	}
 	    }
     }

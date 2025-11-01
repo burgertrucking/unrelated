@@ -80,6 +80,7 @@ typedef struct RenderInfo
 
 static RenderInfo rinfo;
 static int quitTimer;
+static SDL_Surface* slopegfx; /* TEMP */
 
 static int updateGame(GameState* state);
 static int drawGame(GameState* state);
@@ -99,7 +100,7 @@ int InitGame(GameState* state)
 
     int err = setVideoRes(state, RES_WIDTH, RES_HEIGHT, WINDOW_RESIZABLE);
 	if (err) return err;
-	SDL_WM_SetCaption("UNRELATED", NULL);
+	SDL_WM_SetCaption("SURVEY_PROGRAM_202X", NULL);
 	SDL_EnableKeyRepeat(0, 0);
     /* pixel format for current monitor, used for creating game's virtual screens */
 	SDL_PixelFormat pf = *state->screen->format;
@@ -137,6 +138,7 @@ int InitGame(GameState* state)
     /* these weren't in the original game and are only here for testing */
     state->room.slopesLen = 4;
     state->room.slopes[0] = (Slope){ (Vec2){ 266, 198 }, SLOPE_BOTTOM_RIGHT };
+    slopegfx = LoadImage("res-temp/slope.png");
     /* TEMP init room interactables */
     /* only some of them used for testing */
     state->room.interactablesLen = 5;
@@ -266,6 +268,8 @@ static int drawGame(GameState* state)
         err = DrawRoomGizmos(&state->room, state->vScreen240);
         err = DrawPlayerGizmos(&state->player, state->vScreen240);
     }
+    /* TEMP draw slope graphic */
+    BlitSurfaceCoords(slopegfx, NULL, state->vScreen240, (Vec2){266, 198});
 
     /* vscreen480 (game) */
     /* scale vscreen240 to size of vscreen480 */

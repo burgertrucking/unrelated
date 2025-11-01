@@ -1,6 +1,6 @@
 .POSIX:
 
-EXE_NAME = unrelated
+EXE_NAME = SURVEY_PROGRAM_202X
 DLL_NAME = game
 DLL = so
 

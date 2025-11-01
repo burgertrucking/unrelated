@@ -1,3 +1,6 @@
+#ifdef _WIN32
+    #include <windef.h> /* data types (needed for WinMain) */
+#endif /* _WIN32 */
 #include "SDL.h"
 
 #ifdef ENABLE_HOT_RELOADING
@@ -15,7 +18,7 @@
 int logError(int err, const char* callerFn);
 
 /* TODO figure out sdl_main to circumvent the need for this */
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 /* int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) */
 {
 	int err = 0;
